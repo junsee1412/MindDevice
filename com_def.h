@@ -16,6 +16,10 @@
 #define HTTP_MESSAGE_500 "{\"message\":\"Internal Server Error\"}"
 #define HTTP_MESSAGE_SAVED "{\"message\":\"Saved\"}"
 
+// Compress
+// #define var32(val1, val2) ((uint32_t) ((uint32_t) val2 << 16 | (uint32_t) val1))
+#define mergevar(val1, val2, val3, val4) ((uint64_t) ((uint64_t) val4 << 48 | (uint64_t) val3 << 32 | (uint64_t) val2 << 16 | (uint64_t) val1))
+
 // Struct
 
 // struct Web {

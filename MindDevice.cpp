@@ -11,13 +11,16 @@ MindDevice::~MindDevice()
 
 void MindDevice::begin()
 {
+    bool loaded = false;
     if (loadConfig())
     {
         Serial.println("loaded");
+        loaded = true;
     }
     else
     {
         Serial.println("load fails");
+        loaded = false;
     }
     wfmind.setSaveConnectTimeout(1000);
     wfmind.setConfigPortalTimeout(200);
@@ -31,11 +34,23 @@ void MindDevice::begin()
     wfmind.startWebPortal();
 
     mqttclient.setClient(wfclient);
-    reloadMQTT();
+
+    if (loaded)
+    {
+        reloadMQTT();
+        reloadRTU();
+        reloadTime();
+    }
 }
 
 void MindDevice::process()
 {
+#ifdef ESP32
+    struct tm timeinfo;
+    getLocalTime(&timeinfo);
+    time(&_now);
+#endif
+
     wfmind.process();
     if (!mqttclient.connected())
     {
@@ -48,13 +63,154 @@ void MindDevice::process()
         if (_now - _lastAttribute >= _attributeFrequency)
         {
             _lastAttribute = _now;
-            char msg[32] = {0};
-            sprintf(msg, "{\"RSSI\":%d}", wfmind.getRSSIasQuality(WiFi.RSSI()));
+            char msg[128] = {0};
+            sprintf(
+                msg,
+                "{\"RSSI\":%d,\"SSID\":\"%s\",\"IP\":\"%s\",\"MAC\":\"%s\"}",
+                wfmind.getRSSIasQuality(WiFi.RSSI()),
+                WiFi.SSID().c_str(),
+                WiFi.localIP().toString().c_str(),
+                WiFi.macAddress().c_str());
             mqttclient.publish(DEVICE_ATTRIBUTES_TOPIC, msg, 32);
+            sendAttribute();
         }
         if (_now - _lastTelemetry >= _telemetryFrequency)
         {
             _lastTelemetry = _now;
+            // sendTelemetry();
+        }
+    }
+}
+
+void MindDevice::sendAttribute()
+{
+    if (!rtu.slave())
+    {
+        JsonArray devices = config["device"].as<JsonArray>();
+        for (JsonObject device : devices)
+        {
+            JsonDocument resDevice;
+            Serial.println();
+            Serial.println(device["name"] | "");
+            JsonArray keys = config["map"][device["profile"] | 0].as<JsonArray>();
+            for (JsonObject key : keys)
+            {
+                // while (rtu.slave())
+                // {
+                //     rtu.task();
+                //     delay(10);
+                // }
+                // resDevice[key["key"] | "bool"] = rand();
+                int func = key["func"] | 0;
+                int device_id = device["id"] | 0;
+                uint16_t offset = key["offset"] | 0;
+                uint16_t numregs = type_to_numregs(key["type"] | 0);
+                Serial.printf("%d %d %u %u\n", device_id, func, offset, numregs);
+                switch (func)
+                {
+                case 1:
+                    rtu.readCoil(device_id, offset, &_boolregs, numregs, _rtuCallback);
+
+                    while (rtu.slave())
+                    {
+                        rtu.task();
+                        delay(10);
+                    }
+
+                    resDevice[key["key"] | "v1"] = _boolregs;
+                    break;
+                case 2:
+                    rtu.readIsts(device_id, offset, &_boolregs, numregs, _rtuCallback);
+
+                    while (rtu.slave())
+                    {
+                        rtu.task();
+                        delay(10);
+                    }
+
+                    resDevice[key["key"] | "v2"] = _boolregs;
+                    break;
+                case 3:
+                    rtu.readHreg(device_id, offset, _numregs, numregs, _rtuCallback);
+
+                    while (rtu.slave())
+                    {
+                        rtu.task();
+                        delay(10);
+                    }
+                    resDevice[key["key"] | "v3"] = merge_variables(numregs);
+                    break;
+
+                case 4:
+                    rtu.readIreg(device_id, offset, _numregs, numregs, _rtuCallback);
+
+                    while (rtu.slave())
+                    {
+                        rtu.task();
+                        delay(10);
+                    }
+                    resDevice[key["key"] | "v4"] = merge_variables(numregs);
+                    break;
+
+                default:
+                    break;
+                }
+            }
+            serializeJson(resDevice, Serial);
+        }
+    }
+}
+
+uint16_t MindDevice::type_to_numregs(uint8_t type)
+{
+    if (type <= 4)
+    {
+        return 1;
+    }
+    else if (type <= 6)
+    {
+        return 2;
+    }
+    else
+    {
+        return 4;
+    }
+}
+
+uint64_t MindDevice::merge_variables(uint8_t numr)
+{
+    uint64_t c_var = 0;
+    for (uint8_t i = 0; i < numr; i++)
+    {
+        Serial.println(".");
+        c_var = c_var | _numregs[i] << (16 * i);
+        _numregs[i] = 0;
+    }
+    return c_var;
+}
+
+void MindDevice::reloadNetwork()
+{
+    if (config["network"]["dhcp"] | false)
+    {
+        IPAddress ip;
+        IPAddress gw;
+        IPAddress sn;
+        IPAddress dns;
+        if (!ip.fromString(config["network"]["ip"] | "") &&
+            !gw.fromString(config["network"]["gw"] | "") &&
+            !sn.fromString(config["network"]["mask"] | ""))
+        {
+            return;
+        }
+
+        if (dns.fromString(config["network"]["dns"] | ""))
+        {
+            wfmind.setSTAStaticIPConfig(ip, gw, sn, dns);
+        }
+        else
+        {
+            wfmind.setSTAStaticIPConfig(ip, gw, sn);
         }
     }
 }
@@ -63,14 +219,42 @@ void MindDevice::reloadMQTT()
 {
     mqttclient.disconnect();
     mqttclient.setServer(
-        // config["mqtt"]["host"] | "",
-        // config["mqtt"]["port"] | 1883);
-        "10.10.1.102",
-        32686);
+        config["mqtt"]["host"] | "",
+        config["mqtt"]["port"] | 1883);
+    _attributeFrequency = config["mqtt"]["attrf"] | 5;
+    _telemetryFrequency = config["mqtt"]["telef"] | 300;
+    _timeReconnect = config["mqtt"]["reconnect"] | 5;
 }
 
-void MindDevice::reloadNTP()
-{}
+void MindDevice::reloadRTU()
+{
+#if defined(ESP32)
+    Serial2.end();
+    Serial2.begin(config["rtu"]["baudrate"], SERIAL_8N1, 16, 17);
+    rtu.begin(&Serial2);
+#else
+    S.end();
+    S.begin(config["rtu"]["baudrate"], SWSERIAL_8N1, 12, 14);
+    rtu.begin(&S);
+#endif
+    rtu.master();
+}
+
+void MindDevice::reloadTime()
+{
+#ifdef ESP32
+    int time_offset = config["time"]["tz"] | 7;
+    configTime(time_offset, 0, config["time"]["host"] | "pool.ntp.org");
+#else defined(ESP8266)
+    if (_callbackTime)
+    {
+        _callbackTime(
+            config["time"]["host"] | "pool.ntp.org",
+            config["time"]["post"] | NTP_DEFAULT_LOCAL_PORT,
+            config["time"]["tz"] | 7);
+    }
+#endif
+}
 
 void MindDevice::reconnect()
 {
@@ -78,12 +262,9 @@ void MindDevice::reconnect()
     {
         Serial.println("reconn");
         if (mqttclient.connect(
-                // config["mqtt"]["id"] | "",
-                // config["mqtt"]["user"] | "",
-                // config["mqtt"]["pass"] | ""))
-                "xejOfRHvHrckkuHJCYoV",
-                "lkDuOpytoycxZOwWCHsu",
-                "veUHqZHslwsTKFaKpCCb"))
+                config["mqtt"]["id"] | "",
+                config["mqtt"]["user"] | "",
+                config["mqtt"]["pass"] | ""))
         {
             mqttclient.subscribe(DEVICE_ATTRIBUTES_TOPIC);
             mqttclient.subscribe(DEVICE_ATTRIBUTES_TOPIC_RESPONSE);
@@ -91,7 +272,7 @@ void MindDevice::reconnect()
             if (_onMQTTconnected)
             {
                 // callback digitalWrite(LEDMQTT_PIN, LOW);
-                _onMQTTconnected(false);
+                _onMQTTconnected(true);
             }
         }
         else
@@ -100,7 +281,7 @@ void MindDevice::reconnect()
             if (_onMQTTconnected)
             {
                 // callback digitalWrite(LEDMQTT_PIN, HIGH);
-                _onMQTTconnected(true);
+                _onMQTTconnected(false);
             }
         }
     }
@@ -128,7 +309,11 @@ void MindDevice::on_attribute(JsonDocument json)
 
 bool MindDevice::loadConfig()
 {
+#ifdef ESP8266
     if (!LittleFS.begin())
+#elif defined(ESP32)
+    if (!LittleFS.begin(true))
+#endif
     {
         return false;
     }
@@ -147,7 +332,11 @@ bool MindDevice::loadConfig()
 bool MindDevice::saveConfig()
 {
     bool saved = true;
+#ifdef ESP8266
     if (!LittleFS.begin())
+#elif defined(ESP32)
+    if (!LittleFS.begin(true))
+#endif
     {
         return false;
     }

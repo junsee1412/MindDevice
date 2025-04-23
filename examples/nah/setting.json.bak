@@ -33,33 +33,66 @@
       "id": 1,
       "name": "Device 1",
       "profile": 0
+    },
+    {
+      "id": 2,
+      "name": "Device 2",
+      "profile": 0
+    },
+    {
+      "id": 3,
+      "name": "Device 3",
+      "profile": 0
+    },
+    {
+      "id": 23,
+      "name": "Device 4",
+      "profile": 0
     }
   ],
   "map": [
     [
       {
-        "func": 3,
-        "key": "temperature",
+        "func": 4,
+        "key": "voltage",
         "offset": 0,
         "type": 4
       },
       {
-        "func": 3,
-        "key": "velocity",
+        "func": 4,
+        "key": "current",
         "offset": 1,
-        "type": 4
+        "type": 6
       },
       {
-        "func": 3,
-        "key": "displacement",
+        "func": 4,
+        "key": "power",
         "offset": 3,
+        "type": 6
+      },
+      {
+        "func": 4,
+        "key": "energy",
+        "offset": 5,
+        "type": 6
+      },
+      {
+        "func": 4,
+        "key": "frequency",
+        "offset": 7,
         "type": 4
       },
       {
-        "func": 3,
-        "key": "acceleration",
-        "offset": 5,
+        "func": 4,
+        "key": "powerFactor",
+        "offset": 8,
         "type": 4
+      },
+      {
+        "func": 4,
+        "key": "alarm",
+        "offset": 9,
+        "type": 1
       }
     ]
   ],
