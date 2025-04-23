@@ -1,1 +1,4 @@
 build/
+setting.json
+setting.json.bak
+setting.min.json
