@@ -1,73 +1,750 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mind Device</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Energy Meter Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-  <div class="nav">
-    <label><input type="radio" name="tab" value="MQTT" checked>MQTT</label>
-    <label><input type="radio" name="tab" value="WiFi">WiFi</label>
-    <label><input type="radio" name="tab" value="Firmware">Firmware</label>
-  </div>
-  <div class="body">
-    <div>
-      <div class="MQTT tab">
-        <label for="mqtt_host">MQTT Host</label>
-        <input id="mqtt_host" type="text" />
-        <label for="mqtt_port">MQTT Port</label>
-        <input id="mqtt_port" type="number" />
-        <label for="mqtt_id">MQTT Client ID</label>
-        <input id="mqtt_id" type="text" />
-        <button id="gen_mqtt_id">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-linecap="round" stroke-linejoin="round" width="24" height="24" stroke-width="2">
-            <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
-            <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
-          </svg>
-        </button>
-        <label for="mqtt_token">MQTT Username</label>
-        <input id="mqtt_token" type="text" />
-        <label for="mqtt_pass">MQTT Password</label>
-        <input id="mqtt_pass" type="text" />
-        <label for="tele_interval">Telemetry Interval</label>
-        <input id="tele_interval" type="number" />
-        <label for="attr_interval">Attribute Interval</label>
-        <input id="attr_interval" type="number" />
-        <input id="save_config" type="button" value="Submit">
-      </div>
-      <div class="WiFi tab" style="display: none;">
-        <table id="wifi_list">
-        </table>
-        <label for="esp_wifi">SSID:</label>
-        <input id="esp_wifi" type="text">
-        <label for="esp_pass">PASS:</label>
-        <input id="esp_pass" type="password">
-        <input type="checkbox" name="show_pass" id="show_pass">
-        <label for="show_pass">Show Password</label>
-        <input id="submit_wifi" type="button" value="Submit">
-      </div>
-      <div class="Firmware tab" style="display: none;">
-        <label for="esp_firmware">Upload new firmware:</label>
-        <input id="esp_firmware" type="file" accept=".bin,application/octet-stream">
-        <input id="submit_firmware" type="button" value="Submit" style="display: none;">
-      </div>
-      <!-- <p class="message">Status: <span id="status"></span></p> -->
-      <p class="message">Message: <span id="message"></span></p>
-    </div>
-  </div>
-  <footer>
-    <div>
-      <input id="exit" type="button" value="Exit">
-      <input id="restart" type="button" value="Restart">
-      <input id="erase" type="button" value="Erase">
-    </div>
-  </footer>
-</body>
-<script src="script.js"></script>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Energy meter</h2>
+            <div class="menu-section">
+                <h3 class="menu-header active">Status</h3>
+                <ul>
+                    <li><a href="#overview" class="active">Over view</a></li>
+                    <li><a href="#map-ping">Mapping</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">System</h3>
+                <ul>
+                    <li><a href="#system-properties">System Properties</a></li>
+                    <li><a href="#adminstration">Administration</a></li>
+                    <li><a href="#protocol">Serial Port Setting</a></li>
+                    <li><a href="#modbus-poll">Modbus poll</a></li>
+                    <li><a href="#scheduled-tasks">Scheduled Tasks</a></li>
+                    <li><a href="#backup">Backup/Flash firmware</a></li>
+                    <li><a href="#reboot">Reboot</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Network</h3>
+                <ul>
+                    <li><a href="#wan">WAN</a></li>
+                    <li><a href="#lan">LAN</a></li>
+                    <li><a href="#wifi">Wi-Fi</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Console</h3>
+                <ul>
+                    <li><a href="#console">Console</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Communication</h3>
+                <ul>
+                    <li><a href="#communication">Communication</a></li>
+                </ul>
+            </div>
+        </div>
 
-</html>
+        <div class="main-content">
+            <!-- Overview Section -->
+            <div id="overview" class="content-section active">
+                <h2>/Status/Over View</h2>
+                <div class="overview-content">
+                    <div class="info-section">
+                        <h3 class="section-header">System</h3>
+                        <table class="info-table">
+                            <tr>
+                                <td>Hostname</td>
+                                <td>esp8266</td>
+                            </tr>
+                            <tr>
+                                <td>Model</td>
+                                <td>ED005</td>
+                            </tr>
+                            <tr>
+                                <td>Firmware Version</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Local Time</td>
+                                <td>2024-09-20 02:39:13</td>
+                            </tr>
+                            <tr>
+                                <td>Uptime</td>
+                                <td>0h 43m 9s</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="info-section">
+                        <h3 class="section-header">Network</h3>
+                        <table class="info-table">
+                            <tr>
+                                <td>Protocol</td>
+                                <td>MQTT, MODBUS TCP/IP</td>
+                            </tr>
+                            <tr>
+                                <td>SSID</td>
+                                <td>MIND_2G</td>
+                            </tr>
+                            <tr>
+                                <td>WIFI RSSI</td>
+                                <td>-80</td>
+                            </tr>
+                            <tr>
+                                <td>MAC</td>
+                                <td>EE:90:87:D5:36:AC</td>
+                            </tr>
+                            <tr>
+                                <td>Address</td>
+                                <td>192.168.1.100</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Ping Section -->
+            <div id="map-ping" class="content-section">
+                <h2>/Status/Map ping</h2>
+                <div class="map-ping-content">
+                    <!-- Gateway Section -->
+                    <div class="info-section">
+                        <h3 class="section-header">Gateway</h3>
+                        <table class="info-table">
+                            <thead>
+                                <tr>
+                                    <th>Register address</th>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>0x0000</td>
+                                    <td>RSSI_WIFI</td>
+                                    <td>-38</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0001</td>
+                                    <td>VERSION</td>
+                                    <td>0.0.0.8</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0002</td>
+                                    <td>SSID</td>
+                                    <td>MIND_2G</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0003</td>
+                                    <td>IP</td>
+                                    <td>192.168.1.100</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0004</td>
+                                    <td>MAC</td>
+                                    <td>EE:90:87:D5:36:AC</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0005</td>
+                                    <td>Local Time</td>
+                                    <td>2024-09-20 02:39:13</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Node Section -->
+                    <div class="info-section">
+                        <h3 class="section-header">Node</h3>
+                        <div class="node-navigation">
+                            <button class="node-btn active">0x01</button>
+                            <button class="node-btn">0x02</button>
+                            <button class="node-btn">0x03</button>
+                            <button class="node-btn">0x04</button>
+                            <button class="node-btn">0x05</button>
+                        </div>
+                        <table class="info-table">
+                            <thead>
+                                <tr>
+                                    <th>Register address</th>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>0x0000</td>
+                                    <td>Voltage value</td>
+                                    <td>220</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0001</td>
+                                    <td>Current value</td>
+                                    <td>1</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0002</td>
+                                    <td>Power value</td>
+                                    <td>220</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0003</td>
+                                    <td>Energy value</td>
+                                    <td>10</td>
+                                </tr>
+                                <tr>
+                                    <td>0x0004</td>
+                                    <td>Frequency value</td>
+                                    <td>50</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Properties Section -->
+            <div id="system-properties" class="content-section">
+                <h2>/System/System Properties</h2>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="general">General Settings</button>
+                    <button class="tab-btn" data-tab="logging">Logging</button>
+                    <button class="tab-btn" data-tab="time">Time Synchronization</button>
+                </div>
+
+                <div class="tab-content" id="general-tab">
+                    <div class="form-group">
+                        <label>Local Time</label>
+                        <input type="text" value="9/20/2024, 4:16:20 PM" readonly>
+                        <button class="sync-btn">Sync with NTP-Server</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Hostname</label>
+                        <input type="text" value="esp8266">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text">
+                    </div>
+                    <div class="form-group">
+                        <label>Time zone</label>
+                        <input type="text" value="UTC">
+                    </div>
+                </div>
+
+                <div class="tab-content" id="logging-tab" style="display: none;">
+                    <div class="form-group">
+                        <label>System log buffer size</label>
+                        <input type="text" value="512">
+                    </div>
+                    <div class="form-group">
+                        <label>External system log server</label>
+                        <input type="text" value="0.0.0.0">
+                    </div>
+                    <div class="form-group">
+                        <label>External system log server port</label>
+                        <input type="text" value="514">
+                    </div>
+                    <div class="form-group">
+                        <label>External system log server protocol</label>
+                        <input type="text" value="UDP">
+                    </div>
+                    <div class="form-group">
+                        <label>Write system log to file</label>
+                        <input type="text" value="/tmp/system.log">
+                    </div>
+                    <div class="form-group">
+                        <label>Log output level</label>
+                        <input type="text" value="Debug">
+                    </div>
+                    <div class="form-group">
+                        <label>Cron Log Level</label>
+                        <input type="text" value="Waring">
+                    </div>
+                </div>
+
+                <div class="tab-content" id="time-tab" style="display: none;">
+                    <div class="form-group">
+                        <label>Enable NTP client</label>
+                        <input type="checkbox" checked>
+                    </div>
+                    <div class="form-group">
+                        <label>Use DHCP advertised servers</label>
+                        <input type="checkbox" checked>
+                    </div>
+                    <div class="form-group">
+                        <label>NTP server candidates</label>
+                        <div class="ntp-servers">
+                            <div class="server-entry">
+                                <input type="text" value="0.openwrt.pool.ntp.org">
+                                <button class="remove-btn">-</button>
+                            </div>
+                            <div class="server-entry">
+                                <input type="text" value="1.openwrt.pool.ntp.org">
+                                <button class="remove-btn">-</button>
+                            </div>
+                            <div class="server-entry">
+                                <input type="text" value="2.openwrt.pool.ntp.org">
+                                <button class="remove-btn">-</button>
+                            </div>
+                            <div class="server-entry">
+                                <input type="text" value="3.openwrt.pool.ntp.org">
+                                <button class="remove-btn">-</button>
+                            </div>
+                            <button class="add-server-btn">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="save-btn">Save</button>
+                    <button class="reset-btn">Reset</button>
+                </div>
+            </div>
+
+            <!-- Administration Section -->
+            <div id="adminstration" class="content-section">
+                <h2>/System/Administration</h2>
+                <div class="admin-auth-content">
+                    <h1 style="font-size:2.5rem;margin-bottom:0.5em;">Authentication</h1>
+                    <p style="font-size:1.4rem;margin-bottom:2em;">Changes the administrator password for accessing the device</p>
+                    <form class="admin-form">
+                        <div class="form-group">
+                            <label for="admin-username">Username</label>
+                            <input type="text" id="admin-username" value="admin">
+                        </div>
+                        <div class="form-group">
+                            <label for="admin-password">Password</label>
+                            <input type="text" id="admin-password" value="admin">
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="admin-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="admin-reset-btn">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- WAN Section -->
+            <div id="wan" class="content-section">
+                <h2>/Network/Wan</h2>
+                <div class="wan-settings-content">
+                    <h1 style="font-size:2rem;margin-bottom:1em;">WAN Settings</h1>
+                    <form class="wan-form">
+                        <div class="wan-table">
+                            <div class="wan-row">
+                                <label>DHCP</label>
+                                <input type="text" id="wan-dhcp1" value="True">
+                                <input type="text" id="wan-dhcp2" value="True">
+                            </div>
+                            <div class="wan-row">
+                                <label>Wan IP</label>
+                                <input type="text" id="wan-ip" value="10.10.1.34">
+                            </div>
+                            <div class="wan-row">
+                                <label>Subnet Mask</label>
+                                <input type="text" id="wan-mask" value="255.255.255.0">
+                            </div>
+                            <div class="wan-row">
+                                <label>Gateway</label>
+                                <input type="text" id="wan-gateway" value="10.10.1.1">
+                            </div>
+                            <div class="wan-row">
+                                <label>DNS</label>
+                                <input type="text" id="wan-dns" value="8.8.8.8">
+                            </div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="wan-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="wan-reset-btn">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- LAN Section -->
+            <div id="lan" class="content-section">
+                <h2>/Network/Lan</h2>
+                <div class="lan-settings-content">
+                    <h1 style="font-size:2rem;margin-bottom:1em;">LAN Settings</h1>
+                    <form class="lan-form">
+                        <div class="lan-table">
+                            <div class="lan-row">
+                                <label>Lan IP</label>
+                                <input type="text" id="lan-ip" value="10.10.2.1">
+                            </div>
+                            <div class="lan-row">
+                                <label>Subnet Mask</label>
+                                <input type="text" id="lan-mask" value="255.255.255.0">
+                            </div>
+                            <div class="lan-row">
+                                <label>DHCP Server</label>
+                                <input type="text" id="lan-dhcp1" value="True">
+                                <input type="text" id="lan-dhcp2" value="False">
+                            </div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="lan-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="lan-reset-btn">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Wi-Fi Section -->
+            <div id="wifi" class="content-section">
+                <h2>/Network/Wi-Fi</h2>
+                <div class="wifi-settings-content">
+                    <h1 style="font-size:2rem;margin-bottom:1em;">WIFI Settings</h1>
+                    <form class="wifi-form">
+                        <div class="wifi-table">
+                            <div class="wifi-row">
+                                <label>WiFi Mode</label>
+                                <input type="text" id="wifi-mode" value="Gateway">
+                            </div>
+                            <div class="wifi-row">
+                                <label>STA SSID</label>
+                                <input type="text" id="sta-ssid" value="MIND">
+                                <label style="margin-left:40px;">AP SSID</label>
+                                <input type="text" id="ap-ssid" value="MIND">
+                            </div>
+                            <div class="wifi-row">
+                                <label>STA Key</label>
+                                <input type="text" id="sta-key" value="12345678">
+                                <label style="margin-left:40px;">AP Key</label>
+                                <input type="text" id="ap-key" value="12345678">
+                            </div>
+                            <div class="wifi-row">
+                                <label>Subnet Mask</label>
+                                <input type="text" id="wifi-mask" value="255.255.255.0">
+                                <label style="margin-left:40px;">AP Channel</label>
+                                <input type="text" id="ap-channel" value="AUTO">
+                            </div>
+                            <div class="wifi-row">
+                                <label>DHCP Server</label>
+                                <input type="text" id="wifi-dhcp" value="True">
+                            </div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="wifi-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="wifi-reset-btn">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Communication Section -->
+            <div id="communication" class="content-section">
+                <h2>/Communication</h2>
+                <div class="comm-settings-content">
+                    <h1 style="font-size:2rem;margin-bottom:1em;">Basic Settings</h1>
+                    <form class="comm-form">
+                        <div class="comm-row">
+                            <label>Protocol</label>
+                            <input type="text" id="comm-proto1" value="Things board">
+                            <input type="text" id="comm-proto2" value="MQTT">
+                            <input type="text" id="comm-proto3" value="Modbus TCP">
+                        </div>
+                        <h1 style="font-size:1.5rem;margin:1.5em 0 1em 0;">Socket Settings</h1>
+                        <div class="comm-socket-table">
+                            <div class="comm-row"><label>Server</label><input type="text" id="comm-server" value="localhost"><input type="text" id="comm-server2" value=""><!-- right col --></div>
+                            <div class="comm-row"><label>Server Port</label><input type="text" id="comm-port1" value="1883"><input type="text" id="comm-port2" value="502"></div>
+                            <div class="comm-row"><label>Buffer Size</label><input type="text" id="comm-buf1" value="512"><input type="text" id="comm-buf2" value="512"></div>
+                            <div class="comm-row"><label>Keep Alive</label><input type="text" id="comm-keep1" value="60"><input type="text" id="comm-keep2" value="60"></div>
+                            <div class="comm-row"><label>Timeout</label><input type="text" id="comm-timeout1" value="0"><input type="text" id="comm-timeout2" value="0"></div>
+                        </div>
+                        <h1 style="font-size:1.5rem;margin:1.5em 0 1em 0;">Protocol Settings</h1>
+                        <div class="comm-proto-table">
+                            <div class="comm-row"><label>Connect Mode</label><input type="text" id="comm-connect1" value="Always"><input type="text" id="comm-connect2" value="Always"></div>
+                            <div class="comm-row"><label>Register Mode</label><input type="text" id="comm-reg1" value="Disable"><input type="text" id="comm-reg2" value="Disable"></div>
+                            <div class="comm-row"><label>MQTT Version</label><input type="text" id="comm-mqttver1" value="3"><input type="text" id="comm-mqttver2" value="3"></div>
+                            <div class="comm-row"><label>MQTT Client ID</label><input type="text" id="comm-client1" value="xxxxxxxxx"><input type="text" id="comm-client2" value="xxxxxxxxx"></div>
+                            <div class="comm-row"><label>MQTT Account</label><input type="text" id="comm-acc1" value="xxxxxxxxx"><input type="text" id="comm-acc2" value="xxxxxxxxx"></div>
+                            <div class="comm-row"><label>MQTT Password</label><input type="text" id="comm-pass1" value="xxxxxxxxx"><input type="text" id="comm-pass2" value="xxxxxxxxx"></div>
+                            <div class="comm-row"><label>Heart Beat</label><input type="text" id="comm-heart1" value="True"><input type="text" id="comm-heart2" value="True"></div>
+                            <div class="comm-row"><label>Heart Beat Code</label><input type="text" id="comm-heartcode1" value="xxxxxxxxx"><input type="text" id="comm-heartcode2" value="xxxxxxxxx"></div>
+                            <div class="comm-row"><label>Heart Beat Time (s)</label><input type="text" id="comm-hearttime1" value="60"><input type="text" id="comm-hearttime2" value="60"></div>
+                            <div class="comm-row"><label>Max Accept</label><input type="text" id="comm-maxaccept1" value=""><input type="text" id="comm-maxaccept2" value="3"></div>
+                            <div class="comm-row"><label>Subscribe Topic</label><input type="text" id="comm-topic1" value="xxxxxxxxx"><input type="text" id="comm-topic2" value="xxxxxxxxx"></div>
+                            <div class="comm-row"><label>Subscribe QoS</label><input type="text" id="comm-qos1" value="0"><input type="text" id="comm-qos2" value="0"></div>
+                            <div class="comm-row"><label>Publish Topic</label><input type="text" id="comm-pubtopic" value="xxxxxxxxx"></div>
+                            <div class="comm-row"><label>Publish QoS</label><input type="text" id="comm-pubqos" value="0"></div>
+                            <div class="comm-row"><label>Ping Period(s)</label><input type="text" id="comm-pingperiod" value="0"></div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="comm-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="comm-reset-btn">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Console Section -->
+            <div id="console" class="content-section">
+                <h2>/Console</h2>
+                <div class="console-settings-content">
+                    <p style="font-size:1.2rem;margin-bottom:1.5em;">The debug log shows the most recent characters printed by the software itself to its own debug log.</p>
+                    <div class="console-btn-group">
+                        <button type="button" class="console-btn" id="console-refresh-btn">Refresh</button>
+                        <button type="button" class="console-btn" id="console-clear-btn">Clear</button>
+                    </div>
+                    <div class="console-log" id="console-log">
+                        01020103010202020102045401020101020101020101020102543;CP=0;<br>
+                        MS;P0=-1017;P1=-3932;P2=620;P3=-472;P4=449;P5=-1988;D=4104...<br>
+                        ...<br>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduled Tasks Section -->
+            <div id="scheduled-tasks" class="content-section">
+                <h2>/System/Scheduled Tasks</h2>
+                <div class="tasks-settings-content">
+                    <div class="tasks-add-btn-group">
+                        <button type="button" class="add-btn" id="tasks-add-btn">Add</button>
+                    </div>
+                    <form class="tasks-form" id="tasks-form" style="display:none;">
+                        <div class="tasks-table">
+                            <div class="tasks-row">
+                                <label>Task type</label>
+                                <input type="text" id="task-type" value="Send MQTT">
+                            </div>
+                            <div class="tasks-row">
+                                <label>Task name</label>
+                                <input type="text" id="task-name" value="Send device attribute">
+                            </div>
+                            <div class="tasks-row">
+                                <label>Execute cycle</label>
+                                <input type="text" id="task-cycle" value="Cron">
+                            </div>
+                            <div class="tasks-row">
+                                <label>Topic</label>
+                                <input type="text" id="task-topic" value="v1/gateway/attributes">
+                            </div>
+                            <div class="tasks-row">
+                                <label>Frame</label>
+                                <textarea id="task-frame" rows="3" style="min-width:320px;">{ "Device A": {  "attribute1":"value1",  "attribute2": 42 }, "Device B": {  "attribute1": "value1",  "attribute2": 42 }}</textarea>
+                            </div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="back-btn" id="tasks-back-btn">Back</button>
+                            <button type="button" class="save-btn" id="tasks-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="tasks-reset-btn">Reset</button>
+                        </div>
+                    </form>
+                    <div class="tasks-list-table-wrapper" id="tasks-list-table-wrapper">
+                        <table class="tasks-list-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th><th>Name</th><th>Task type</th><th>Execute cycle</th><th>Status</th><th>Last execute time</th><th>Next execute time</th><th>Modify</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasks-list-body">
+                                <tr>
+                                    <td>1</td><td><b>Send gateway attribute</b></td><td>Send MQTT</td><td>Cron</td><td style="color:#e53935;font-weight:bold;">Active</td><td>2024-09-20 02:39:13 GMT+07:00</td><td>2024-09-20 02:39:13 GMT+07:00</td><td><a href="#" class="edit-task">Edit</a> <a href="#" class="delete-task" style="color:red;">Delete</a></td>
+                                </tr>
+                                <tr>
+                                    <td>2</td><td>Send gateway telemetry</td><td>Send MQTT</td><td>Cron</td><td style="color:#ff9800;font-weight:bold;">Pause</td><td>2024-09-20 02:39:13 GMT+07:00</td><td>2024-09-20 02:39:13 GMT+07:00</td><td><a href="#" class="edit-task">Edit</a> <a href="#" class="delete-task" style="color:red;">Delete</a></td>
+                                </tr>
+                                <tr>
+                                    <td>3</td><td>Send device attribute</td><td>Send MQTT</td><td>Cron</td><td style="color:#ff9800;font-weight:bold;">Pause</td><td>2024-09-20 02:39:13 GMT+07:00</td><td>2024-09-20 02:39:13 GMT+07:00</td><td><a href="#" class="edit-task">Edit</a> <a href="#" class="delete-task" style="color:red;">Delete</a></td>
+                                </tr>
+                                <tr>
+                                    <td>4</td><td><b>Send device telemetry</b></td><td>Send MQTT</td><td>Cron</td><td style="color:#e53935;font-weight:bold;">Active</td><td>2024-09-20 02:39:13 GMT+07:00</td><td>2024-09-20 02:39:13 GMT+07:00</td><td><a href="#" class="edit-task">Edit</a> <a href="#" class="delete-task" style="color:red;">Delete</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modbus Poll Section -->
+            <div id="modbus-poll" class="content-section">
+                <h2>/System/Modbus Poll</h2>
+                <div class="modbus-poll-settings-content">
+                    <div class="modbus-gateway-section">
+                        <h3 class="section-header">Gateway</h3>
+                        <table class="modbus-gateway-table">
+                            <tr><th>Key</th><th>Value</th></tr>
+                            <tr><td>Rssi Wifi</td><td id="gw-rssi">-38</td></tr>
+                            <tr><td>Version</td><td id="gw-version">0.0.0.8</td></tr>
+                            <tr><td>Ssid</td><td id="gw-ssid">MIND</td></tr>
+                            <tr><td>Ip</td><td id="gw-ip">192.168.1.100</td></tr>
+                            <tr><td>Mac</td><td id="gw-mac">EE:90:87:D5:36:AC</td></tr>
+                            <tr><td>Local Time</td><td id="gw-time">2024-09-20 02:39:13</td></tr>
+                            <tr><td>Time Zone</td><td id="gw-tz">Asia/Ho_Chi_Minh</td></tr>
+                        </table>
+                    </div>
+                    <div class="modbus-node-section">
+                        <h3 class="section-header">Node</h3>
+                        <div class="modbus-node-nav">
+                            <button class="modbus-node-btn active">0x01</button>
+                            <button class="modbus-node-btn">0x02</button>
+                            <button class="modbus-node-btn">0x03</button>
+                            <button class="modbus-node-btn">0x04</button>
+                            <button class="modbus-node-btn">0x05</button>
+                            <button class="modbus-node-btn">0x06</button>
+                        </div>
+                        <div class="modbus-node-add-btn-group">
+                            <button type="button" class="add-btn" id="modbus-node-add-btn">Add</button>
+                        </div>
+                        <form class="modbus-node-form" id="modbus-node-form" style="display:none;">
+                            <div class="modbus-node-form-table">
+                                <div class="modbus-node-form-row">
+                                    <label>SlaveID</label>
+                                    <input type="text" id="modbus-form-slaveid" value="">
+                                </div>
+                                <div class="modbus-node-form-row">
+                                    <label>Address Mode</label>
+                                    <input type="text" id="modbus-form-addrmode" value="">
+                                </div>
+                                <div class="modbus-node-form-row">
+                                    <label>Funtion</label>
+                                    <input type="text" id="modbus-form-funtion" value="">
+                                </div>
+                                <div class="modbus-node-form-row">
+                                    <label>Address</label>
+                                    <input type="text" id="modbus-form-address" value="">
+                                </div>
+                                <div class="modbus-node-form-row">
+                                    <label>Quantity</label>
+                                    <input type="text" id="modbus-form-quantity" value="">
+                                </div>
+                            </div>
+                            <div class="button-group" style="justify-content: flex-end;">
+                                <button type="button" class="back-btn" id="modbus-node-back-btn">Back</button>
+                                <button type="button" class="save-btn" id="modbus-node-save-btn">Save</button>
+                                <button type="button" class="reset-btn" id="modbus-node-reset-btn">Reset</button>
+                            </div>
+                        </form>
+                        <div id="modbus-node-table-wrapper">
+                            <table class="modbus-node-table">
+                                <thead>
+                                    <tr>
+                                        <th>Group</th>
+                                        <th>Register address</th>
+                                        <th>Key</th>
+                                        <th>Value</th>
+                                        <th>Modify</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modbus-node-tbody">
+                                    <tr>
+                                        <td>0</td><td>0x0000</td><td>Voltage value</td><td>220</td><td><a href="#" class="edit-modbus">edit</a> <a href="#" class="delete-modbus" style="color:red;">delete</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td>0</td><td>0x0001</td><td>Current value</td><td>1</td><td><a href="#" class="edit-modbus">edit</a> <a href="#" class="delete-modbus" style="color:red;">delete</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td>0</td><td>0x0002</td><td>Power value</td><td>220</td><td><a href="#" class="edit-modbus">edit</a> <a href="#" class="delete-modbus" style="color:red;">delete</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td>0</td><td>0x0003</td><td>Energy value</td><td>10</td><td><a href="#" class="edit-modbus">edit</a> <a href="#" class="delete-modbus" style="color:red;">delete</a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end; margin-top: 20px;">
+                            <button type="button" class="save-btn" id="modbus-poll-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="modbus-poll-reset-btn">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Serial Port Settings Section -->
+            <div id="protocol" class="content-section">
+                <h2>/System/ Serial Port Settings</h2>
+                <div class="serial-settings-content">
+                    <div class="serial-tabs">
+                        <button class="serial-tab-btn active" data-tab="basic">Basic Settings</button>
+                        <button class="serial-tab-btn" data-tab="advanced">Advanced Settings</button>
+                    </div>
+                    <form class="serial-form serial-basic-form" id="serial-basic-form">
+                        <div class="serial-form-table">
+                            <div class="serial-form-row"><label>Buffer Size</label><input type="text" id="serial-basic-buffer" value="512"></div>
+                            <div class="serial-form-row"><label>Gap Time</label><input type="text" id="serial-basic-gap" value="50"></div>
+                            <div class="serial-form-row"><label>Flow Control</label><input type="text" id="serial-basic-flow" value="Disable"></div>
+                            <div class="serial-form-row"><label>Cli</label><input type="text" id="serial-basic-cli" value="Disable"></div>
+                            <div class="serial-form-row"><label>Protocol</label><input type="text" id="serial-basic-proto" value="Modbus"></div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="serial-basic-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="serial-basic-reset-btn">Reset</button>
+                        </div>
+                    </form>
+                    <form class="serial-form serial-advanced-form" id="serial-advanced-form" style="display:none;">
+                        <div class="serial-form-table">
+                            <div class="serial-form-row"><label>Baud Rate</label><input type="text" id="serial-adv-baud" value="9600"></div>
+                            <div class="serial-form-row"><label>Data Bit</label><input type="text" id="serial-adv-data" value="8"></div>
+                            <div class="serial-form-row"><label>Stop Bit</label><input type="text" id="serial-adv-stop" value="1"></div>
+                            <div class="serial-form-row"><label>Parity</label><input type="text" id="serial-adv-parity" value="None"></div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="serial-adv-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="serial-adv-reset-btn">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Reboot Section -->
+            <div id="reboot" class="content-section">
+                <h2>/System/Reboot</h2>
+                <div class="reboot-settings-content">
+                    <h1 style="font-size:2rem;">Reboot</h1>
+                    <p style="font-size:1.2rem;margin-bottom:2em;">Reboots the operating system of your device</p>
+                    <button type="button" class="reboot-btn" id="reboot-perform-btn">Perform reboot</button>
+                </div>
+            </div>
+
+            <!-- Backup/Flash firmware Section -->
+            <div id="backup" class="content-section">
+                <h2>/System/Backup/Flash firmware</h2>
+                <div class="backup-settings-content">
+                    <div class="backup-block">
+                        <h3>Backup</h3>
+                        <p>Click "Generate archive" to download a tar archive of the current configuration files.</p>
+                        <div class="backup-row">
+                            <span>Download backup</span>
+                            <button type="button" class="backup-btn green" id="backup-generate-btn">Generate archive</button>
+                        </div>
+                    </div>
+                    <div class="backup-block">
+                        <h3>Restore</h3>
+                        <p>To restore configuration files, you can upload a previously generated backup archive here.</p>
+                        <div class="backup-row">
+                            <span>Restore backup</span>
+                            <button type="button" class="backup-btn green" id="backup-upload-btn">Upload archive...</button>
+                        </div>
+                    </div>
+                    <div class="backup-block">
+                        <h3>Factory reset</h3>
+                        <p>To reset the firmware to its initial state, click "Perform reset".</p>
+                        <div class="backup-row">
+                            <span>Perform reset</span>
+                            <button type="button" class="backup-btn red" id="backup-reset-btn">Reset</button>
+                        </div>
+                    </div>
+                    <div class="backup-block">
+                        <h3>Flash new firmware image</h3>
+                        <p>Upload a sysupgrade-compatible image here to replace the running firmware.</p>
+                        <div class="backup-row">
+                            <span>Image</span>
+                            <button type="button" class="backup-btn blue" id="backup-flash-btn">Flash image...</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 

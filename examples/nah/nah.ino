@@ -1,5 +1,3 @@
-// HardwareSerial Serial2(2);
-
 #include <MindDevice.h>
 
 #ifdef ESP32
@@ -18,13 +16,13 @@ void setup()
     Serial.begin(9600);
     pinMode(LED_BUILTIN, OUTPUT);
     md.setWebServerCallback(&webServer);
-    // md.onPortalOTAStart(&otaStart);
-    // md.onPortalOTAEnd(&otaEnd);
-    // md.onPortalOTAError(&otaError);
-    // md.onMQTTOTAStart(&otaStart);
-    // md.onMQTTOTAProgress(&otaProgress);
-    // md.onMQTTOTAEnd(&otaEnd);
-    // md.onMQTTOTAError(&otaError);
+    md.onPortalOTAStart(&otaStart);
+    md.onPortalOTAEnd(&otaEnd);
+    md.onPortalOTAError(&otaError);
+    md.onMQTTOTAStart(&otaStart);
+    md.onMQTTOTAProgress(&otaProgress);
+    md.onMQTTOTAEnd(&otaEnd);
+    md.onMQTTOTAError(&otaError);
     md.onMQTTConnected(&onMQTT);
 
 #ifdef ESP8266
@@ -45,27 +43,26 @@ void loop()
 {
 #ifdef ESP8266
     md._now = ntp.getEpochTime();
-// #else defined(ESP32)
-//     time(&md._now);
 #endif
     md.process();
 }
 
 void webServer()
 {
-    Serial.println("web server");
     md.wfmind.server->on("/api/system", HTTP_GET, handleGetSystem);
     md.wfmind.server->on("/api/system", HTTP_POST, handleSaveSystem);
-    md.wfmind.server->on("/api/network", HTTP_GET, handleGetNetwork);
-    md.wfmind.server->on("/api/network", HTTP_POST, handleSaveNetwork);
+    md.wfmind.server->on("/api/wan", HTTP_GET, handleGetWAN);
+    md.wfmind.server->on("/api/wan", HTTP_POST, handleSaveWAN);
+    md.wfmind.server->on("/api/lan", HTTP_GET, handleGetLAN);
+    md.wfmind.server->on("/api/lan", HTTP_POST, handleSaveLAN);
     md.wfmind.server->on("/api/time", HTTP_GET, handleGetTime);
     md.wfmind.server->on("/api/time", HTTP_POST, handleSaveTime);
     md.wfmind.server->on("/api/rtu", HTTP_GET, handleGetRTU);
     md.wfmind.server->on("/api/rtu", HTTP_POST, handleSaveRTU);
     md.wfmind.server->on("/api/devices", HTTP_GET, handleGetDevices);
-    // md.wfmind.server->on("/api/devices", HTTP_POST, handleSaveDevices);
+    md.wfmind.server->on("/api/devices", HTTP_POST, handleSaveDevices);
     md.wfmind.server->on("/api/mapping", HTTP_GET, handleGetMapping);
-    // md.wfmind.server->on("/api/mapping", HTTP_POST, handleSaveMapping);
+    md.wfmind.server->on("/api/mapping", HTTP_POST, handleSaveMapping);
     md.wfmind.server->on("/api/mqtt", HTTP_GET, handleGetMqtt);
     md.wfmind.server->on("/api/mqtt", HTTP_POST, handleSaveMqtt);
     md.wfmind.server->on("/api/backup", HTTP_GET, handleBackup);
@@ -167,52 +164,84 @@ void handleSaveSystem()
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    md.config["sys"]["auth"] = doc["auth"] | false;
-    md.config["sys"]["user"] = doc["user"] | "admin";
-    md.config["sys"]["pass"] = doc["pass"] | "admin";
-    md.config["sys"]["hostname"] = doc["hostname"] | "MIND Device";
-    md.config["sys"]["port"] = doc["port"] | 80;
-    md.config["sys"]["apssid"] = doc["apssid"] | "MIND Device";
-    md.config["sys"]["appass"] = doc["appass"] | "mindprojects";
     if (error || !md.saveConfig())
     {
         md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
     }
     else
     {
+        md.config["sys"]["auth"] = doc["auth"] | false;
+        md.config["sys"]["user"] = doc["user"] | "admin";
+        md.config["sys"]["pass"] = doc["pass"] | "admin";
+        md.config["sys"]["hostname"] = doc["hostname"] | "MIND Device";
+        md.config["sys"]["port"] = doc["port"] | 80;
+        md.config["sys"]["apssid"] = doc["apssid"] | "MIND Device";
+        md.config["sys"]["appass"] = doc["appass"] | "mindprojects";
         md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
         md.loadConfig();
+        md.reloadSYS();
     }
 }
 
-void handleGetNetwork()
+void handleGetWAN()
 {
     md.wfmind.handleRequest();
     String buf;
-    JsonDocument network = md.config["network"];
-    serializeJson(network, buf);
+    JsonDocument wan = md.config["wan"];
+    serializeJson(wan, buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
 }
 
-void handleSaveNetwork()
+void handleSaveWAN()
 {
     md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    md.config["network"]["dhcp"] = doc["dhcp"] | false;
-    md.config["network"]["ip"] = doc["ip"] | "";
-    md.config["network"]["gw"] = doc["gw"] | "";
-    md.config["network"]["mask"] = doc["mask"] | "";
-    md.config["network"]["dns"] = doc["dns"] | "";
     if (error || !md.saveConfig())
     {
         md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
     }
     else
     {
+        md.config["wan"]["dhcp"] = doc["dhcp"] | false;
+        md.config["wan"]["ip"] = doc["ip"] | "";
+        md.config["wan"]["gw"] = doc["gw"] | "";
+        md.config["wan"]["mask"] = doc["mask"] | "";
+        md.config["wan"]["dns"] = doc["dns"] | "";
         md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
         md.loadConfig();
+        md.reloadWAN();
+    }
+}
+
+void handleGetLAN()
+{
+    md.wfmind.handleRequest();
+    String buf;
+    JsonDocument lan = md.config["lan"];
+    serializeJson(lan, buf);
+    md.wfmind.server->send(200, JSONTYPE, buf);
+}
+
+void handleSaveLAN()
+{
+    md.wfmind.handleRequest();
+    String buf = md.wfmind.server->arg("plain");
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, buf);
+    if (error || !md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+    }
+    else
+    {
+        // md.config["lan"]["dhcp"] = doc["dhcp"] | false;
+        md.config["lan"]["ip"] = doc["ip"] | "";
+        md.config["lan"]["mask"] = doc["mask"] | "";
+        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.loadConfig();
+        md.reloadLAN();
     }
 }
 
@@ -231,18 +260,19 @@ void handleSaveTime()
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    md.config["time"]["dhcp"] = doc["dhcp"] | false;
-    md.config["time"]["host"] = doc["host"] | "pool.ntp.org";
-    md.config["time"]["post"] = doc["post"] | 1337;
-    md.config["time"]["tz"] = doc["tz"] | 7;
     if (error || !md.saveConfig())
     {
         md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
     }
     else
     {
+        md.config["time"]["dhcp"] = doc["dhcp"] | false;
+        md.config["time"]["host"] = doc["host"] | "pool.ntp.org";
+        md.config["time"]["post"] = doc["post"] | 1337;
+        md.config["time"]["tz"] = doc["tz"] | 7;
         md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
         md.loadConfig();
+        md.reloadTime();
     }
 }
 
@@ -261,18 +291,19 @@ void handleSaveRTU()
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    md.config["rtu"]["baudrate"] = doc["baudrate"] | 9600;
-    md.config["rtu"]["databit"] = doc["databit"] | 8;
-    md.config["rtu"]["stopbit"] = doc["stopbit"] | 1;
-    md.config["rtu"]["parity"] = doc["parity"] | NULL;
     if (error || !md.saveConfig())
     {
         md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
     }
     else
     {
+        md.config["rtu"]["baudrate"] = doc["baudrate"] | 9600;
+        md.config["rtu"]["databit"] = doc["databit"] | 8;
+        md.config["rtu"]["stopbit"] = doc["stopbit"] | 1;
+        md.config["rtu"]["parity"] = doc["parity"] | NULL;
         md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
         md.loadConfig();
+        md.reloadRTU();
     }
 }
 
@@ -288,6 +319,20 @@ void handleGetDevices()
 
 void handleSaveDevices()
 {
+    md.wfmind.handleRequest();
+    String buf = md.wfmind.server->arg("plain");
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, buf);
+    if (error || !md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+    }
+    else
+    {
+        md.config["device"] = doc.to<JsonArray>();
+        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.loadConfig();
+    }
 }
 
 void handleGetMapping()
@@ -301,6 +346,20 @@ void handleGetMapping()
 
 void handleSaveMapping()
 {
+    md.wfmind.handleRequest();
+    String buf = md.wfmind.server->arg("plain");
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, buf);
+    if (error || !md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+    }
+    else
+    {
+        md.config["map"] = doc.to<JsonArray>();
+        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.loadConfig();
+    }
 }
 
 void handleGetMqtt()
@@ -318,20 +377,20 @@ void handleSaveMqtt()
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    md.config["mqtt"]["id"] = doc["id"] | "";
-    md.config["mqtt"]["user"] = doc["user"] | "";
-    md.config["mqtt"]["pass"] = doc["pass"] | "";
-    md.config["mqtt"]["host"] = doc["host"] | "";
-    md.config["mqtt"]["port"] = doc["port"] | 1883;
-    md.config["mqtt"]["attrf"] = doc["attrf"] | 5;
-    md.config["mqtt"]["telef"] = doc["telef"] | 300;
-    md.config["mqtt"]["reconnect"] = doc["reconnect"] | 5;
     if (error || !md.saveConfig())
     {
         md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
     }
     else
     {
+        md.config["mqtt"]["id"] = doc["id"] | "";
+        md.config["mqtt"]["user"] = doc["user"] | "";
+        md.config["mqtt"]["pass"] = doc["pass"] | "";
+        md.config["mqtt"]["host"] = doc["host"] | "";
+        md.config["mqtt"]["port"] = doc["port"] | 1883;
+        md.config["mqtt"]["attrf"] = doc["attrf"] | 5;
+        md.config["mqtt"]["telef"] = doc["telef"] | 300;
+        md.config["mqtt"]["reconnect"] = doc["reconnect"] | 5;
         md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
         md.loadConfig();
         md.reloadMQTT();
@@ -391,6 +450,7 @@ bool cbWrite(Modbus::ResultCode event, uint16_t transactionId, void *data)
     //   resultCode = event;
     if (event != Modbus::EX_SUCCESS)
     {
+        md.rtu_code = event;
         Serial.println(event, HEX);
     }
     return true;

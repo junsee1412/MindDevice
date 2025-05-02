@@ -31,6 +31,7 @@ public:
     PubSubClient mqttclient;
     ModbusRTU rtu;
     JsonDocument config;
+    Modbus::ResultCode rtu_code;
     time_t _now = 0;
 
     void begin();
@@ -38,11 +39,13 @@ public:
     bool loadConfig();
     bool saveConfig();
     void reloadMQTT();
-    void reloadNetwork();
+    void reloadLAN();
+    void reloadWAN();
+    void reloadSYS();
     void reloadRTU();
     void reloadTime();
-    // void setAttributeFrequency(unsigned char freq);
-    // void setTelemetryFrequency(unsigned char freq);
+    void sendAttribute();
+    void sendTelemetry();
 
 private:
     WiFiClient wfclient;
@@ -57,10 +60,10 @@ private:
     unsigned char _telemetryFrequency = 0;
     unsigned char _timeReconnect = 5;
 
-    uint16_t _numregs[4];
+    uint16_t _valregs[4];
     bool _boolregs;
-
-
+    char bufmqtt[256];
+    // JsonDocument doc_for_attr;
 
 #if defined(ESP32)
     using OTAUpdate = HTTPUpdate;
@@ -73,11 +76,10 @@ private:
 
     void reconnect();
     void on_attribute(JsonDocument json);
-    void sendAttribute();
-    void sendTelemetry();
 
     uint16_t type_to_numregs(uint8_t type);
-    uint64_t merge_variables(uint8_t numr);
+    uint64_t merge_variables(uint8_t numr, bool reverse = false);
+    // uint64_t merge_reverse_variables(uint8_t numr);
 
     std::function<void(bool)> _onMQTTconnected;
     cbTransaction _rtuCallback;

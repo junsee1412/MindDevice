@@ -6,6 +6,16 @@
 #define DEVICE_RPC_TOPIC_REQUEST "v1/devices/me/rpc/request/"
 #define DEVICE_RPC_TOPIC_RESPONSE "v1/devices/me/rpc/response/"
 
+#define GATEWAY_TOPIC_CONNECT " v1/gateway/connect"
+#define GATEWAY_TOPIC_DISCONNECT " v1/gateway/disconnect"
+#define GATEWAY_TELEMETRY_TOPIC "v1/gateway/telemetry"
+#define GATEWAY_RPC_TOPIC "v1/gateway/rpc"
+#define GATEWAY_CLAIMING_TOPIC "v1/gateway/claiming"
+#define GATEWAY_ATTRIBUTES_TOPIC "v1/gateway/attributes"
+#define GATEWAY_ATTRIBUTES_TOPIC_REQUEST "v1/gateway/attributes/request"
+#define GATEWAY_ATTRIBUTES_TOPIC_RESPONSE "v1/gateway/attributes/response"
+
+
 // DEVICE JSON CONFIG 
 #define WRITE_FILE "w"
 #define READ_FILE "r"
