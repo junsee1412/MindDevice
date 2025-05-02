@@ -27,7 +27,7 @@ void MindDevice::begin()
     }
     wfmind.setSaveConnectTimeout(1000);
     wfmind.setConfigPortalTimeout(200);
-    _wifiConnected = wfmind.autoConnect(config["sys"]["apssid"], config["sys"]["appass"]);
+    _wifiConnected = wfmind.autoConnect(config["sys"]["apssid"] | "MIND Dev", config["sys"]["appass"] | "mindprojects");
 
     if (!_wifiConnected)
     {
@@ -107,46 +107,18 @@ void MindDevice::sendAttribute()
                 {
                 case 1:
                     rtu.readCoil(device_id, offset, &_boolregs, numregs, _rtuCallback);
-
-                    // while (rtu.slave())
-                    // {
-                    //     rtu.task();
-                    //     delay(10);
-                    // }
-                    // resDevice[key["key"] | "v1"] = _boolregs;
                     break;
 
                 case 2:
                     rtu.readIsts(device_id, offset, &_boolregs, numregs, _rtuCallback);
-
-                    // while (rtu.slave())
-                    // {
-                    //     rtu.task();
-                    //     delay(10);
-                    // }
-                    // resDevice[key["key"] | "v2"] = _boolregs;
                     break;
 
                 case 3:
                     rtu.readHreg(device_id, offset, _valregs, numregs, _rtuCallback);
-
-                    // while (rtu.slave())
-                    // {
-                    //     rtu.task();
-                    //     delay(10);
-                    // }
-                    // resDevice[key["key"] | "v3"] = merge_variables(numregs);
                     break;
 
                 case 4:
                     rtu.readIreg(device_id, offset, _valregs, numregs, _rtuCallback);
-
-                    // while (rtu.slave())
-                    // {
-                    //     rtu.task();
-                    //     delay(10);
-                    // }
-                    // resDevice[key["key"] | "v4"] = merge_variables(numregs);
                     break;
 
                 default:
@@ -216,7 +188,7 @@ void MindDevice::sendAttribute()
             {
                 doc_for_attr[device["name"] | ""] = resDevice;
                 serializeJson(doc_for_attr, bufmqtt);
-                Serial.println(bufmqtt);
+                // Serial.println(bufmqtt);
                 mqttclient.publish(GATEWAY_ATTRIBUTES_TOPIC, bufmqtt, 256);
             }
         }
@@ -245,46 +217,18 @@ void MindDevice::sendTelemetry()
                 {
                 case 1:
                     rtu.readCoil(device_id, offset, &_boolregs, numregs, _rtuCallback);
-
-                    // while (rtu.slave())
-                    // {
-                    //     rtu.task();
-                    //     delay(10);
-                    // }
-                    // res_values[key["key"] | "v1"] = _boolregs;
                     break;
 
                 case 2:
                     rtu.readIsts(device_id, offset, &_boolregs, numregs, _rtuCallback);
-
-                    // while (rtu.slave())
-                    // {
-                    //     rtu.task();
-                    //     delay(10);
-                    // }
-                    // res_values[key["key"] | "v2"] = _boolregs;
                     break;
 
                 case 3:
                     rtu.readHreg(device_id, offset, _valregs, numregs, _rtuCallback);
-
-                    // while (rtu.slave())
-                    // {
-                    //     rtu.task();
-                    //     delay(10);
-                    // }
-                    // res_values[key["key"] | "v3"] = merge_variables(numregs);
                     break;
 
                 case 4:
                     rtu.readIreg(device_id, offset, _valregs, numregs, _rtuCallback);
-
-                    // while (rtu.slave())
-                    // {
-                    //     rtu.task();
-                    //     delay(10);
-                    // }
-                    // res_values[key["key"] | "v4"] = merge_variables(numregs);
                     break;
                 }
 
@@ -406,12 +350,14 @@ void MindDevice::reloadLAN()
     IPAddress ip;
     IPAddress gw;
     IPAddress sn;
-    if (ip.fromString(config["lan"]["ip"] | "") &&
-        gw.fromString(config["lan"]["gw"] | "") &&
-        sn.fromString(config["lan"]["mask"] | ""))
+    if (ip.fromString(config["lan"]["ip"] | "192.168.4.1") &&
+        gw.fromString(config["lan"]["gw"] | "192.168.4.1") &&
+        sn.fromString(config["lan"]["mask"] | "255.255.255.0"))
     {
         wfmind.setAPStaticIPConfig(ip, gw, sn);
+        Serial.print("Set ");
     }
+    Serial.println("LAN");
 }
 
 void MindDevice::reloadWAN()
@@ -432,12 +378,15 @@ void MindDevice::reloadWAN()
         if (dns.fromString(config["wan"]["dns"] | ""))
         {
             wfmind.setSTAStaticIPConfig(ip, gw, sn, dns);
+            Serial.print("Set ");
         }
         else
         {
             wfmind.setSTAStaticIPConfig(ip, gw, sn);
+            Serial.print("Set ");
         }
     }
+    Serial.println("WAN");
 }
 
 void MindDevice::reloadMQTT()
@@ -449,6 +398,7 @@ void MindDevice::reloadMQTT()
     _attributeFrequency = config["mqtt"]["attrf"] | 5;
     _telemetryFrequency = config["mqtt"]["telef"] | 300;
     _timeReconnect = config["mqtt"]["reconnect"] | 5;
+    Serial.println("MQTT");
 }
 
 void MindDevice::reloadRTU()
@@ -473,7 +423,7 @@ void MindDevice::reloadRTU()
         break;
     }
 
-    Serial2.begin(config["rtu"]["baudrate"], SConfig, 17, 16);
+    Serial2.begin(config["rtu"]["baudrate"] | 9600, SConfig, 17, 16);
     rtu.begin(&Serial2);
 #else
     S.end();
@@ -481,6 +431,7 @@ void MindDevice::reloadRTU()
     rtu.begin(&S);
 #endif
     rtu.master();
+    Serial.println("RTU");
 }
 
 void MindDevice::reloadTime()
@@ -497,6 +448,7 @@ void MindDevice::reloadTime()
             config["time"]["tz"] | 7);
     }
 #endif
+Serial.println("TIME");
 }
 
 void MindDevice::reloadSYS()
@@ -505,6 +457,7 @@ void MindDevice::reloadSYS()
     wfmind.setHostname(config["sys"]["hostname"] | "MIND Device");
     wfmind.setHttpPort(config["sys"]["port"] | 80);
     // wfmind.setAP
+    Serial.println("SYSTEM");
 }
 
 void MindDevice::reconnect()

@@ -1,7 +1,7 @@
 #include <MindDevice.h>
 
 #ifdef ESP32
-#define LED_BUILTIN 2
+#define LED_BUILTIN 13
 #endif
 
 #ifdef ESP8266
@@ -59,12 +59,12 @@ void webServer()
     md.wfmind.server->on("/api/time", HTTP_POST, handleSaveTime);
     md.wfmind.server->on("/api/rtu", HTTP_GET, handleGetRTU);
     md.wfmind.server->on("/api/rtu", HTTP_POST, handleSaveRTU);
+    md.wfmind.server->on("/api/mqtt", HTTP_GET, handleGetMqtt);
+    md.wfmind.server->on("/api/mqtt", HTTP_POST, handleSaveMqtt);
     md.wfmind.server->on("/api/devices", HTTP_GET, handleGetDevices);
     md.wfmind.server->on("/api/devices", HTTP_POST, handleSaveDevices);
     md.wfmind.server->on("/api/mapping", HTTP_GET, handleGetMapping);
     md.wfmind.server->on("/api/mapping", HTTP_POST, handleSaveMapping);
-    md.wfmind.server->on("/api/mqtt", HTTP_GET, handleGetMqtt);
-    md.wfmind.server->on("/api/mqtt", HTTP_POST, handleSaveMqtt);
     md.wfmind.server->on("/api/backup", HTTP_GET, handleBackup);
     md.wfmind.server->on("/api/restore", HTTP_POST, handleRestored, handleRestore);
 }
@@ -428,14 +428,19 @@ void onReloadNTP(const char *poolServerName, unsigned int port, int tz)
 
 void onMQTT(bool connected)
 {
+#ifdef ESP8266
+    int VAL = LOW;
+#elif defined(ESP32)
+    int VAL = HIGH;
+#endif
     if (connected)
     {
-        digitalWrite(LED_BUILTIN, HIGH);
+        digitalWrite(LED_BUILTIN, HIGH ^ VAL);
         Serial.println("connected");
     }
     else
     {
-        digitalWrite(LED_BUILTIN, LOW);
+        digitalWrite(LED_BUILTIN, LOW ^ VAL);
         Serial.println("disconnected");
     }
 }
