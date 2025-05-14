@@ -14,7 +14,7 @@ void MindDevice::begin()
     bool loaded = false;
     if (loadConfig())
     {
-        Serial.println("loaded");
+        Serial.println(F("loaded"));
         reloadSYS();
         reloadLAN();
         reloadWAN();
@@ -22,7 +22,7 @@ void MindDevice::begin()
     }
     else
     {
-        Serial.println("load fails");
+        Serial.println(F("load fails"));
         loaded = false;
     }
     wfmind.setSaveConnectTimeout(1000);
@@ -50,7 +50,7 @@ void MindDevice::process()
 {
 #ifdef ESP32
     struct tm timeinfo;
-    getLocalTime(&timeinfo);
+    getLocalTime(&timeinfo, 0);
     time(&_now);
 #endif
 
@@ -120,9 +120,6 @@ void MindDevice::sendAttribute()
                 case 4:
                     rtu.readIreg(device_id, offset, _valregs, numregs, _rtuCallback);
                     break;
-
-                default:
-                    break;
                 }
 
                 while (rtu.slave())
@@ -136,50 +133,27 @@ void MindDevice::sendAttribute()
                 {
                 case 0:
                     if (func > 2)
-                        res_bool = (bool)merge_variables(numregs);
+                        res_bool = (bool)merge_variables(_valregs, numregs);
                     else
                         res_bool = _boolregs;
 
                     resDevice[key["key"] | "bool"] = res_bool;
                     break;
                 case 1:
-                    resDevice[key["key"] | "int8"] = (int8_t)merge_variables(numregs);
-                    break;
                 case 2:
-                    resDevice[key["key"] | "uint8"] = (uint8_t)merge_variables(numregs);
-                    break;
                 case 3:
-                    resDevice[key["key"] | "int16"] = (int16_t)merge_variables(numregs);
-                    break;
                 case 4:
-                    resDevice[key["key"] | "uint16"] = (uint16_t)merge_variables(numregs);
-                    break;
                 case 5:
-                    resDevice[key["key"] | "int32"] = (int32_t)merge_variables(numregs);
-                    break;
                 case 6:
-                    resDevice[key["key"] | "uint32"] = (uint32_t)merge_variables(numregs);
+                case 9:
+                case 10:
+                    resDevice[key["key"] | "num"] = merge_variables(_valregs, numregs);
                     break;
                 case 7:
-                    resDevice[key["key"] | "int32"] = (int32_t)merge_variables(numregs, true);
-                    break;
                 case 8:
-                    resDevice[key["key"] | "uint32"] = (uint32_t)merge_variables(numregs, true);
-                    break;
-                case 9:
-                    resDevice[key["key"] | "int64"] = (int64_t)merge_variables(numregs);
-                    break;
-                case 10:
-                    resDevice[key["key"] | "uint64"] = (uint64_t)merge_variables(numregs);
-                    break;
                 case 11:
-                    resDevice[key["key"] | "int64"] = (int64_t)merge_variables(numregs, true);
-                    break;
                 case 12:
-                    resDevice[key["key"] | "uint64"] = (uint64_t)merge_variables(numregs, true);
-                    break;
-                default:
-                    resDevice[key["key"] | "val"] = (uint64_t)merge_variables(numregs);
+                    resDevice[key["key"] | "num"] = merge_variables(_valregs, numregs, true);
                     break;
                 }
             }
@@ -188,7 +162,7 @@ void MindDevice::sendAttribute()
             {
                 doc_for_attr[device["name"] | ""] = resDevice;
                 serializeJson(doc_for_attr, bufmqtt);
-                // Serial.println(bufmqtt);
+                Serial.println(bufmqtt);
                 mqttclient.publish(GATEWAY_ATTRIBUTES_TOPIC, bufmqtt, 256);
             }
         }
@@ -243,50 +217,27 @@ void MindDevice::sendTelemetry()
                 {
                 case 0:
                     if (func > 2)
-                        res_bool = (bool)merge_variables(numregs);
+                        res_bool = (bool)merge_variables(_valregs, numregs);
                     else
                         res_bool = _boolregs;
 
                     res_values[key["key"] | "bool"] = res_bool;
                     break;
                 case 1:
-                    res_values[key["key"] | "int8"] = (int8_t)merge_variables(numregs);
-                    break;
                 case 2:
-                    res_values[key["key"] | "uint8"] = (uint8_t)merge_variables(numregs);
-                    break;
                 case 3:
-                    res_values[key["key"] | "int16"] = (int16_t)merge_variables(numregs);
-                    break;
                 case 4:
-                    res_values[key["key"] | "uint16"] = (uint16_t)merge_variables(numregs);
-                    break;
                 case 5:
-                    res_values[key["key"] | "int32"] = (int32_t)merge_variables(numregs);
-                    break;
                 case 6:
-                    res_values[key["key"] | "uint32"] = (uint32_t)merge_variables(numregs);
+                case 9:
+                case 10:
+                    res_values[key["key"] | "num"] = merge_variables(_valregs, numregs);
                     break;
                 case 7:
-                    res_values[key["key"] | "int32"] = (int32_t)merge_variables(numregs, true);
-                    break;
                 case 8:
-                    res_values[key["key"] | "uint32"] = (uint32_t)merge_variables(numregs, true);
-                    break;
-                case 9:
-                    res_values[key["key"] | "int64"] = (int64_t)merge_variables(numregs);
-                    break;
-                case 10:
-                    res_values[key["key"] | "uint64"] = (uint64_t)merge_variables(numregs);
-                    break;
                 case 11:
-                    res_values[key["key"] | "int64"] = (int64_t)merge_variables(numregs, true);
-                    break;
                 case 12:
-                    res_values[key["key"] | "uint64"] = (uint64_t)merge_variables(numregs, true);
-                    break;
-                default:
-                    res_values[key["key"] | "val"] = (uint64_t)merge_variables(numregs);
+                    res_values[key["key"] | "num"] = merge_variables(_valregs, numregs, true);
                     break;
                 }
             }
@@ -296,6 +247,7 @@ void MindDevice::sendTelemetry()
                 JsonArray array = doc_for_tele[device["name"] | ""].to<JsonArray>();
                 array.add(res_values);
                 serializeJson(doc_for_tele, bufmqtt);
+                Serial.println(bufmqtt);
                 mqttclient.publish(GATEWAY_TELEMETRY_TOPIC, bufmqtt, 256);
             }
         }
@@ -318,7 +270,7 @@ uint16_t MindDevice::type_to_numregs(uint8_t type)
     }
 }
 
-uint64_t MindDevice::merge_variables(uint8_t numr, bool reverse)
+uint64_t MindDevice::merge_variables(uint16_t *valregs, uint8_t numr, bool reverse)
 {
     uint64_t c_var = 0;
     for (uint8_t i = 0; i < numr; i++)
@@ -327,8 +279,8 @@ uint64_t MindDevice::merge_variables(uint8_t numr, bool reverse)
             uint8_t mbit = 16 * (numr - i - 1);
         else
             uint8_t mbit = 16 * i;
-        c_var = c_var | _valregs[i] << (16 * i);
-        _valregs[i] = 0;
+        c_var = c_var | valregs[i] << (16 * i);
+        valregs[i] = 0;
     }
     return c_var;
 }
@@ -362,7 +314,8 @@ void MindDevice::reloadLAN()
 
 void MindDevice::reloadWAN()
 {
-    if (config["wan"]["dhcp"] | false)
+    bool enable_dhcp = config["wan"]["dhcp"] | false;
+    if (!enable_dhcp)
     {
         IPAddress ip;
         IPAddress gw;
@@ -437,8 +390,8 @@ void MindDevice::reloadRTU()
 void MindDevice::reloadTime()
 {
 #ifdef ESP32
-    int time_offset = config["time"]["tz"] | 7;
-    configTime(time_offset, 0, config["time"]["host"] | "pool.ntp.org");
+    long time_offset = config["time"]["tz"] | 7;
+    configTime(time_offset * 3600, 0, config["time"]["host"] | "pool.ntp.org");
 #else defined(ESP8266)
     if (_callbackTime)
     {
@@ -454,7 +407,7 @@ Serial.println("TIME");
 void MindDevice::reloadSYS()
 {
     wfmind.setAllowBasicAuth(config["sys"]["auth"] | false);
-    wfmind.setHostname(config["sys"]["hostname"] | "MIND Device");
+    wfmind.setHostname(config["sys"]["hostname"] | "MIND_Dev");
     wfmind.setHttpPort(config["sys"]["port"] | 80);
     // wfmind.setAP
     Serial.println("SYSTEM");

@@ -47,6 +47,9 @@ public:
     void sendAttribute();
     void sendTelemetry();
 
+    uint16_t type_to_numregs(uint8_t type);
+    uint64_t merge_variables(uint16_t *valregs, uint8_t numr, bool reverse = false);
+
 private:
     WiFiClient wfclient;
 
@@ -77,10 +80,6 @@ private:
     void reconnect();
     void on_attribute(JsonDocument json);
 
-    uint16_t type_to_numregs(uint8_t type);
-    uint64_t merge_variables(uint8_t numr, bool reverse = false);
-    // uint64_t merge_reverse_variables(uint8_t numr);
-
     std::function<void(bool)> _onMQTTconnected;
     cbTransaction _rtuCallback;
 
@@ -89,7 +88,7 @@ public:
 
     // callback
     void setMQTTCallback(std::function<void(char *, uint8_t *, unsigned int)> func) { mqttclient.setCallback(func); }
-    void setWebServerCallback(std::function<void()> func) { wfmind.setWebServerCallback(func); }
+    // void setWebServerCallback(std::function<void()> func) { wfmind.setWebServerCallback(func); }
     void onPortalOTAStart(std::function<void()> func) { wfmind.onOTAStart(func); }
     void onPortalOTAEnd(std::function<void()> func) { wfmind.onOTAEnd(func); }
     void onPortalOTAError(std::function<void(int)> func) { wfmind.onOTAError(func); }

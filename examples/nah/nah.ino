@@ -1,4 +1,8 @@
+#include <ArduinoJson.h>
 #include <MindDevice.h>
+// #include "index.h"
+// #include "styles.h"
+// #include "script.h"
 
 #ifdef ESP32
 #define LED_BUILTIN 13
@@ -15,7 +19,8 @@ void setup()
 {
     Serial.begin(9600);
     pinMode(LED_BUILTIN, OUTPUT);
-    md.setWebServerCallback(&webServer);
+    // md.setWebServerCallback(&webServer);
+    md.wfmind.setWebServerCallback(&webServer);
     md.onPortalOTAStart(&otaStart);
     md.onPortalOTAEnd(&otaEnd);
     md.onPortalOTAError(&otaError);
@@ -49,6 +54,9 @@ void loop()
 
 void webServer()
 {
+    md.wfmind.server->on("/api/info", HTTP_GET, handleGetInfo);
+    md.wfmind.server->on("/api/key", HTTP_GET, handleGetByKey);
+    md.wfmind.server->on("/api/node", HTTP_GET, handleGetByProfile);
     md.wfmind.server->on("/api/system", HTTP_GET, handleGetSystem);
     md.wfmind.server->on("/api/system", HTTP_POST, handleSaveSystem);
     md.wfmind.server->on("/api/wan", HTTP_GET, handleGetWAN);
@@ -67,6 +75,31 @@ void webServer()
     md.wfmind.server->on("/api/mapping", HTTP_POST, handleSaveMapping);
     md.wfmind.server->on("/api/backup", HTTP_GET, handleBackup);
     md.wfmind.server->on("/api/restore", HTTP_POST, handleRestored, handleRestore);
+}
+
+void handleGetInfo()
+{
+    char buf[256];
+    JsonDocument info;
+    info["product"] = "ED485";
+    info["mac"] = WiFi.macAddress();
+    info["ip"] = md.config["wan"]["ip"];
+    info["dhcp"] = md.config["wan"]["dhcp"];
+    info["mask"] = md.config["wan"]["mask"];
+    info["gw"] = md.config["wan"]["gw"];
+    info["dns"] = md.config["wan"]["dns"];
+    info["version"] = "0.0.1";
+    info["time"] = md.config["time"]["ntp"];
+
+#ifdef ESP8266
+    info["uptime"] = millis();
+#elif defined(ESP32)
+    info["uptime"] = esp_timer_get_time();
+#endif
+    info["freememory"] = ESP.getFreeHeap();
+    info["rssi"] = md.wfmind.getRSSIasQuality(WiFi.RSSI());
+    serializeJson(info, buf);
+    md.wfmind.server->send(200, JSONTYPE, buf);
 }
 
 void handleBackup()
@@ -91,7 +124,7 @@ void handleBackup()
     }
     else
     {
-        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
     }
 }
 File fsUploadFile;
@@ -133,7 +166,7 @@ void handleRestore()
         }
         else
         {
-            md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+            md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
         }
     }
     else if (upload.status == UPLOAD_FILE_ABORTED)
@@ -143,41 +176,45 @@ void handleRestore()
 
 void handleRestored()
 {
-    md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+    md.wfmind.server->send(200, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVED));
     md.loadConfig();
 }
 
 void handleGetSystem()
 {
-    md.wfmind.handleRequest();
-    String buf;
-    JsonDocument sys = md.config["sys"];
+    char buf[256];
+    // JsonDocument sys = md.config["sys"];
     // sys["stassid"] = "hha";
     // sys["stapass"] = "hha";
-    serializeJson(sys, buf);
+    serializeJson(md.config["sys"], buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
 }
 
 void handleSaveSystem()
 {
-    md.wfmind.handleRequest();
+    // md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    if (error || !md.saveConfig())
+    if (error)
     {
-        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+    md.config["sys"]["auth"] = doc["auth"] | false;
+    md.config["sys"]["user"] = doc["user"] | "admin";
+    md.config["sys"]["pass"] = doc["pass"] | "admin";
+    md.config["sys"]["hostname"] = doc["hostname"] | "MIND Device";
+    md.config["sys"]["port"] = doc["port"] | 80;
+    md.config["sys"]["apssid"] = doc["apssid"] | "MIND Device";
+    md.config["sys"]["appass"] = doc["appass"] | "mindprojects";
+    if (!md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVE_FAILED));
     }
     else
     {
-        md.config["sys"]["auth"] = doc["auth"] | false;
-        md.config["sys"]["user"] = doc["user"] | "admin";
-        md.config["sys"]["pass"] = doc["pass"] | "admin";
-        md.config["sys"]["hostname"] = doc["hostname"] | "MIND Device";
-        md.config["sys"]["port"] = doc["port"] | 80;
-        md.config["sys"]["apssid"] = doc["apssid"] | "MIND Device";
-        md.config["sys"]["appass"] = doc["appass"] | "mindprojects";
-        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.wfmind.server->send(200, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVED));
         md.loadConfig();
         md.reloadSYS();
     }
@@ -185,31 +222,34 @@ void handleSaveSystem()
 
 void handleGetWAN()
 {
-    md.wfmind.handleRequest();
-    String buf;
-    JsonDocument wan = md.config["wan"];
-    serializeJson(wan, buf);
+    char buf[256];
+    // JsonDocument wan = md.config["wan"];
+    serializeJson(md.config["wan"], buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
 }
 
 void handleSaveWAN()
 {
-    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    if (error || !md.saveConfig())
+    if (error)
     {
-        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+    md.config["wan"]["dhcp"] = doc["dhcp"] | false;
+    md.config["wan"]["ip"] = doc["ip"] | "";
+    md.config["wan"]["gw"] = doc["gw"] | "";
+    md.config["wan"]["mask"] = doc["mask"] | "";
+    md.config["wan"]["dns"] = doc["dns"] | "";
+    if (!md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVE_FAILED));
     }
     else
     {
-        md.config["wan"]["dhcp"] = doc["dhcp"] | false;
-        md.config["wan"]["ip"] = doc["ip"] | "";
-        md.config["wan"]["gw"] = doc["gw"] | "";
-        md.config["wan"]["mask"] = doc["mask"] | "";
-        md.config["wan"]["dns"] = doc["dns"] | "";
-        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.wfmind.server->send(200, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVED));
         md.loadConfig();
         md.reloadWAN();
     }
@@ -217,8 +257,7 @@ void handleSaveWAN()
 
 void handleGetLAN()
 {
-    md.wfmind.handleRequest();
-    String buf;
+    char buf[256];
     JsonDocument lan = md.config["lan"];
     serializeJson(lan, buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
@@ -226,20 +265,24 @@ void handleGetLAN()
 
 void handleSaveLAN()
 {
-    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    if (error || !md.saveConfig())
+    if (error)
     {
-        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+    // md.config["lan"]["dhcp"] = doc["dhcp"] | false;
+    md.config["lan"]["ip"] = doc["ip"] | "";
+    md.config["lan"]["mask"] = doc["mask"] | "";
+    if (!md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVE_FAILED));
     }
     else
     {
-        // md.config["lan"]["dhcp"] = doc["dhcp"] | false;
-        md.config["lan"]["ip"] = doc["ip"] | "";
-        md.config["lan"]["mask"] = doc["mask"] | "";
-        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.wfmind.server->send(200, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVED));
         md.loadConfig();
         md.reloadLAN();
     }
@@ -247,30 +290,34 @@ void handleSaveLAN()
 
 void handleGetTime()
 {
-    md.wfmind.handleRequest();
-    String buf;
+    char buf[256];
     JsonDocument time = md.config["time"];
+    time["now"] = md._now;
     serializeJson(time, buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
 }
 
 void handleSaveTime()
 {
-    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    if (error || !md.saveConfig())
+    if (error)
     {
-        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+    md.config["time"]["dhcp"] = doc["dhcp"] | false;
+    md.config["time"]["host"] = doc["host"] | "pool.ntp.org";
+    md.config["time"]["post"] = doc["post"] | 1337;
+    md.config["time"]["tz"] = doc["tz"] | 7;
+    if (!md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVE_FAILED));
     }
     else
     {
-        md.config["time"]["dhcp"] = doc["dhcp"] | false;
-        md.config["time"]["host"] = doc["host"] | "pool.ntp.org";
-        md.config["time"]["post"] = doc["post"] | 1337;
-        md.config["time"]["tz"] = doc["tz"] | 7;
-        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.wfmind.server->send(200, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVED));
         md.loadConfig();
         md.reloadTime();
     }
@@ -278,8 +325,7 @@ void handleSaveTime()
 
 void handleGetRTU()
 {
-    md.wfmind.handleRequest();
-    String buf;
+    char buf[256];
     JsonDocument time = md.config["rtu"];
     serializeJson(time, buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
@@ -287,21 +333,25 @@ void handleGetRTU()
 
 void handleSaveRTU()
 {
-    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    if (error || !md.saveConfig())
+    if (error)
     {
-        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+    md.config["rtu"]["baudrate"] = doc["baudrate"] | 9600;
+    md.config["rtu"]["databit"] = doc["databit"] | 8;
+    md.config["rtu"]["stopbit"] = doc["stopbit"] | 1;
+    md.config["rtu"]["parity"] = doc["parity"] | 0;
+    if (!md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVE_FAILED));
     }
     else
     {
-        md.config["rtu"]["baudrate"] = doc["baudrate"] | 9600;
-        md.config["rtu"]["databit"] = doc["databit"] | 8;
-        md.config["rtu"]["stopbit"] = doc["stopbit"] | 1;
-        md.config["rtu"]["parity"] = doc["parity"] | NULL;
-        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.wfmind.server->send(200, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVED));
         md.loadConfig();
         md.reloadRTU();
     }
@@ -310,8 +360,7 @@ void handleSaveRTU()
 void handleGetDevices()
 {
     // md.wfmind.server->
-    md.wfmind.handleRequest();
-    String buf;
+    char buf[1024];
     JsonDocument device = md.config["device"];
     serializeJson(device, buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
@@ -319,26 +368,29 @@ void handleGetDevices()
 
 void handleSaveDevices()
 {
-    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    if (error || !md.saveConfig())
+    if (error)
     {
-        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+    md.config["device"] = doc.to<JsonArray>();
+    if (!md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVE_FAILED));
     }
     else
     {
-        md.config["device"] = doc.to<JsonArray>();
-        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.wfmind.server->send(200, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVED));
         md.loadConfig();
     }
 }
 
 void handleGetMapping()
 {
-    md.wfmind.handleRequest();
-    String buf;
+    char buf[1024];
     JsonDocument map = md.config["map"];
     serializeJson(map, buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
@@ -346,26 +398,29 @@ void handleGetMapping()
 
 void handleSaveMapping()
 {
-    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    if (error || !md.saveConfig())
+    if (error)
     {
-        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+    md.config["map"] = doc.to<JsonArray>();
+    if (!md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVE_FAILED));
     }
     else
     {
-        md.config["map"] = doc.to<JsonArray>();
-        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.wfmind.server->send(200, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVED));
         md.loadConfig();
     }
 }
 
 void handleGetMqtt()
 {
-    md.wfmind.handleRequest();
-    String buf;
+    char buf[512];
     JsonObject network = md.config["mqtt"];
     serializeJson(network, buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
@@ -373,28 +428,168 @@ void handleGetMqtt()
 
 void handleSaveMqtt()
 {
-    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
-    if (error || !md.saveConfig())
+    if (error)
     {
-        md.wfmind.server->send(500, JSONTYPE, HTTP_MESSAGE_500);
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+    md.config["mqtt"]["id"] = doc["id"] | "";
+    md.config["mqtt"]["user"] = doc["user"] | "";
+    md.config["mqtt"]["pass"] = doc["pass"] | "";
+    md.config["mqtt"]["host"] = doc["host"] | "";
+    md.config["mqtt"]["port"] = doc["port"] | 1883;
+    md.config["mqtt"]["attrf"] = doc["attrf"] | 5;
+    md.config["mqtt"]["telef"] = doc["telef"] | 300;
+    md.config["mqtt"]["reconnect"] = doc["reconnect"] | 5;
+    if (!md.saveConfig())
+    {
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVE_FAILED));
     }
     else
     {
-        md.config["mqtt"]["id"] = doc["id"] | "";
-        md.config["mqtt"]["user"] = doc["user"] | "";
-        md.config["mqtt"]["pass"] = doc["pass"] | "";
-        md.config["mqtt"]["host"] = doc["host"] | "";
-        md.config["mqtt"]["port"] = doc["port"] | 1883;
-        md.config["mqtt"]["attrf"] = doc["attrf"] | 5;
-        md.config["mqtt"]["telef"] = doc["telef"] | 300;
-        md.config["mqtt"]["reconnect"] = doc["reconnect"] | 5;
-        md.wfmind.server->send(200, JSONTYPE, HTTP_MESSAGE_SAVED);
+        md.wfmind.server->send(200, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVED));
         md.loadConfig();
         md.reloadMQTT();
     }
+}
+
+void handleGetByProfile()
+{
+    int id = (int)md.wfmind.server->arg("id").toInt() | 0;
+    uint8_t profile = (uint8_t)md.wfmind.server->arg("profile").toInt() | 0;
+    JsonArray keys = md.config["map"][profile].as<JsonArray>();
+
+    JsonDocument res_values;
+    bool res_bool = false;
+    uint16_t _valregs[4] = {0};
+    char buf[256];
+
+    for (JsonObject key : keys)
+    {
+        int func = key["func"] | 0;
+        uint16_t offset = key["offset"] | 0;
+        int type = key["type"] | 0;
+        uint16_t numregs = md.type_to_numregs(type);
+        switch (func)
+        {
+        case 1:
+            md.rtu.readCoil(id, offset, &res_bool, numregs, &cbWrite);
+            break;
+
+        case 2:
+            md.rtu.readIsts(id, offset, &res_bool, numregs, &cbWrite);
+            break;
+
+        case 3:
+            md.rtu.readHreg(id, offset, _valregs, numregs, &cbWrite);
+            break;
+
+        case 4:
+            md.rtu.readIreg(id, offset, _valregs, numregs, &cbWrite);
+            break;
+        }
+
+        while (md.rtu.slave())
+        {
+            md.rtu.task();
+            delay(10);
+        }
+
+        switch (type)
+        {
+        case 0:
+            if (func > 2)
+                res_bool = (bool)md.merge_variables(_valregs, numregs);
+            res_values[key["key"] | "bool"] = res_bool;
+            break;
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 9:
+        case 10:
+            res_values[key["key"] | "num"] = md.merge_variables(_valregs, numregs);
+            break;
+        case 7:
+        case 8:
+        case 11:
+        case 12:
+            res_values[key["key"] | "num"] = md.merge_variables(_valregs, numregs, true);
+            break;
+        }
+    }
+    serializeJson(res_values, buf);
+    md.wfmind.server->send(200, JSONTYPE, buf);
+}
+
+void handleGetByKey()
+{
+    int id = (int)md.wfmind.server->arg("id").toInt() | 0;
+    int func = (int)md.wfmind.server->arg("func").toInt() | 0;
+    uint16_t numregs = (uint16_t)md.wfmind.server->arg("numregs").toInt() | 0;
+    uint16_t offset = (uint16_t)md.wfmind.server->arg("offset").toInt() | 0;
+
+    JsonDocument res_values;
+    bool _boolregs[4] = {0};
+    uint16_t _valregs[4] = {0};
+    char buf[256];
+
+    if (numregs > 4 || id > UINT8_MAX)
+    {
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+
+    switch (func)
+    {
+    case 1:
+        md.rtu.readCoil(id, offset, _boolregs, numregs, &cbWrite);
+        break;
+
+    case 2:
+        md.rtu.readIsts(id, offset, _boolregs, numregs, &cbWrite);
+        break;
+
+    case 3:
+        md.rtu.readHreg(id, offset, _valregs, numregs, &cbWrite);
+        break;
+
+    case 4:
+        md.rtu.readIreg(id, offset, _valregs, numregs, &cbWrite);
+        break;
+    default:
+        md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
+        return;
+    }
+
+    while (md.rtu.slave())
+    {
+        md.rtu.task();
+        delay(10);
+    }
+
+    res_values["event"] = md.rtu_code;
+    JsonArray array = res_values["data"].to<JsonArray>();
+    switch (func)
+    {
+    case 1:
+    case 2:
+        for (uint16_t i = 0; i < numregs; i++)
+            array.add(_boolregs[i]);
+        break;
+    case 3:
+    case 4:
+        for (uint16_t i = 0; i < numregs; i++)
+            array.add(_valregs[i]);
+        break;
+    }
+    serializeJson(res_values, buf);
+    md.wfmind.server->send(200, JSONTYPE, buf);
 }
 
 void otaStart()
