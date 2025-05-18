@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="sidebar">
+            <div class="menu-section">
+                <h3 class="menu-header active">Overview</h3>
+                <ul>
+                    <li><a href="/">Overview</a></li>
+                    <li><a href="/slaves.html">Slaves</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">System</h3>
+                <ul>
+                    <li><a href="/systems.html">System</a></li>
+                    <li><a href="/modbus.html">Modbus</a></li>
+                    <li><a href="/mqtt.html">MQTT</a></li>
+                    <li><a href="/mapping.html">Mapping</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Network</h3>
+                <ul>
+                    <li><a href="/wifi.html">WiFi</a></li>
+                    <li><a href="/wan.html" class="active">WAN</a></li>
+                    <li><a href="/lan.html">LAN</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Other</h3>
+                <ul>
+                    <li><a href="/other.html">Other</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="main-content">
+            <!-- WAN Section -->
+            <div id="wan" class="content-section active">
+                <h2>WAN</h2>
+                <div class="wan-settings-content">
+                    <form class="wan-form">
+                        <div class="wan-table">
+                            <div class="wan-row">
+                                <label>DHCP</label>
+                                <input type="checkbox" id="wan_dhcp">
+                            </div>
+                            <div class="wan-row">
+                                <label>IP</label>
+                                <input type="text" id="wan_ip">
+                            </div>
+                            <div class="wan-row">
+                                <label>Subnet Mask</label>
+                                <input type="text" id="wan_mask">
+                            </div>
+                            <div class="wan-row">
+                                <label>Gateway</label>
+                                <input type="text" id="wan_gateway">
+                            </div>
+                            <div class="wan-row">
+                                <label>DNS</label>
+                                <input type="text" id="wan_dns">
+                            </div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="save_btn">Save</button>
+                            <button type="button" class="reset-btn" id="reset_btn">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const HOST_IP = window.location.host;
+
+    const wan_dhcp = document.getElementById("wan_dhcp");
+    const wan_ip = document.getElementById("wan_ip");
+    const wan_mask = document.getElementById("wan_mask");
+    const wan_gateway = document.getElementById("wan_gateway");
+    const wan_dns = document.getElementById("wan_dns");
+    const save_btn = document.getElementById("save_btn");
+    const reset_btn = document.getElementById("reset_btn");
+
+    const loading = () => {
+        fetch(`http://${HOST_IP}/api/wan`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            wan_dhcp.checked = data.dhcp;
+            wan_ip.value = data.ip;
+            wan_mask.value = data.mask;
+            wan_gateway.value = data.gw;
+            wan_dns.value = data.dns;
+        });
+    }
+
+    reset_btn.onclick = () => loading();
+    save_btn.onclick = () => {
+        fetch(`http://${HOST_IP}/api/wan`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ 
+                dhcp: Boolean(wan_dhcp.checked),
+                ip: wan_ip.value,
+                mask: wan_mask.value,
+                gw: wan_gateway.value,
+                dns: wan_dns.value,
+             })
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message)
+        });
+    }
+    loading();
+</script>
+
+</html>

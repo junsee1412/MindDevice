@@ -1,0 +1,9 @@
+{
+    "auth": false,
+    "user": "admin",
+    "pass": "admin",
+    "hostname": "MIND_Device",
+    "port": 80,
+    "apssid": "MIND Dev",
+    "appass": "mindprojects"
+  }

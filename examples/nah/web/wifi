@@ -1,0 +1,67 @@
+[
+  {
+    "ssid": "05 nguyen xi T2",
+    "quality": "90",
+    "encrytion": "WPA_WPA2_PSK"
+  },
+  {
+    "ssid": "Kien",
+    "quality": "88",
+    "encrytion": "WPA2_PSK"
+  },
+  {
+    "ssid": "MINH QUAN",
+    "quality": "86",
+    "encrytion": "WPA2_PSK"
+  },
+  {
+    "ssid": "Thanh Hoa",
+    "quality": "80",
+    "encrytion": "WPA2_PSK"
+  },
+  {
+    "ssid": "Tlpt",
+    "quality": "60",
+    "encrytion": "WPA_WPA2_PSK"
+  },
+  {
+    "ssid": "***",
+    "quality": "60",
+    "encrytion": "WPA_WPA2_PSK"
+  },
+  {
+    "ssid": "KHONG CO WIFI",
+    "quality": "56",
+    "encrytion": "WPA_WPA2_PSK"
+  },
+  {
+    "ssid": "RONG TROI",
+    "quality": "48",
+    "encrytion": "WPA2_PSK"
+  },
+  {
+    "ssid": "05 nguyen xi",
+    "quality": "34",
+    "encrytion": "WPA_WPA2_PSK"
+  },
+  {
+    "ssid": "Tra My_5G",
+    "quality": "32",
+    "encrytion": "WPA2_PSK"
+  },
+  {
+    "ssid": "05 NGUYEN XI",
+    "quality": "22",
+    "encrytion": "WPA_WPA2_PSK"
+  },
+  {
+    "ssid": "Mr Phan",
+    "quality": "16",
+    "encrytion": "WPA_WPA2_PSK"
+  },
+  {
+    "ssid": "Xi Vang",
+    "quality": "16",
+    "encrytion": "WPA_WPA2_PSK"
+  }
+]

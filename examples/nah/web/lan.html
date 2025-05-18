@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="sidebar">
+            <div class="menu-section">
+                <h3 class="menu-header active">Overview</h3>
+                <ul>
+                    <li><a href="/">Overview</a></li>
+                    <li><a href="/slaves.html">Slaves</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">System</h3>
+                <ul>
+                    <li><a href="/systems.html">System</a></li>
+                    <li><a href="/modbus.html">Modbus</a></li>
+                    <li><a href="/mqtt.html">MQTT</a></li>
+                    <li><a href="/mapping.html">Mapping</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Network</h3>
+                <ul>
+                    <li><a href="/wifi.html">WiFi</a></li>
+                    <li><a href="/wan.html">WAN</a></li>
+                    <li><a href="/lan.html" class="active">LAN</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Other</h3>
+                <ul>
+                    <li><a href="/other.html">Other</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="main-content">
+            <!-- LAN Section -->
+            <div id="lan" class="content-section active">
+                <h2>LAN</h2>
+                <div class="lan-settings-content">
+                    <form class="lan-form">
+                        <div class="lan-table">
+                            <div class="lan-row">
+                                <label>Lan IP</label>
+                                <input type="text" id="lan_ip">
+                            </div>
+                            <div class="lan-row">
+                                <label>Subnet Mask</label>
+                                <input type="text" id="lan_mask">
+                            </div>
+                            <div class="lan-row">
+                                <label>Gateway</label>
+                                <input type="text" id="lan_gateway">
+                            </div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="save_btn">Save</button>
+                            <button type="button" class="reset-btn" id="reset_btn">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const HOST_IP = window.location.host;
+
+    const lan_ip = document.getElementById("lan_ip");
+    const lan_mask = document.getElementById("lan_mask");
+    const lan_gateway = document.getElementById("lan_gateway");
+    const save_btn = document.getElementById("save_btn");
+    const reset_btn = document.getElementById("reset_btn");
+
+    const loading = () => {
+        fetch(`http://${HOST_IP}/api/lan`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            lan_ip.value = data.ip;
+            lan_mask.value = data.mask;
+            lan_gateway.value = data.gw;
+        });
+    }
+
+    reset_btn.onclick = () => loading();
+    save_btn.onclick = () => {
+        fetch(`http://${HOST_IP}/api/lan`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ 
+                ip: lan_ip.value,
+                mask: lan_mask.value,
+                gw: lan_gateway.value,
+             })
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message)
+        });
+    }
+    loading();
+</script>
+</html>

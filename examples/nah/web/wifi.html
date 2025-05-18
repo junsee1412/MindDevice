@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="sidebar">
+            <div class="menu-section">
+                <h3 class="menu-header active">Overview</h3>
+                <ul>
+                    <li><a href="/">Overview</a></li>
+                    <li><a href="/slaves.html" class="active">Slaves</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">System</h3>
+                <ul>
+                    <li><a href="/systems.html">System</a></li>
+                    <li><a href="/modbus.html">Modbus</a></li>
+                    <li><a href="/mqtt.html">MQTT</a></li>
+                    <li><a href="/mapping.html">Mapping</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Network</h3>
+                <ul>
+                    <li><a href="/wifi.html" class="active">WiFi</a></li>
+                    <li><a href="/wan.html">WAN</a></li>
+                    <li><a href="/lan.html">LAN</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Other</h3>
+                <ul>
+                    <li><a href="/other.html">Other</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="wifi" class="content-section active">
+                <h2>WiFi</h2>
+                <div class="wifi-settings-content">
+                    <div class="tasks-list-table-wrapper" id="tasks-list-table-wrapper">
+                        <table class="tasks-list-table">
+                            <thead>
+                                <tr>
+                                    <th>SSID</th>
+                                    <th>RSSI</th>
+                                    <th>SECURITY</th>
+                                </tr>
+                            </thead>
+                            <tbody id="list_wifi">
+
+                            </tbody>
+                        </table>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="scan_btn">Scan</button>
+                            <button type="button" class="reset-btn" id="clear_btn">Clear</button>
+                        </div>
+                    </div>
+                    <div class="tasks-list-table-wrapper" id="tasks-list-table-wrapper">
+                        <form class="wifi-form">
+                        <div class="wifi-table">
+                            <div class="wifi-row">
+                                <label>SSID</label>
+                                <input type="text" id="ssid">
+                            </div>
+                            <div class="wifi-row">
+                                <label>PASS</label>
+                                <input type="text" id="pass">
+                            </div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="save_btn">Save</button>
+                            <!-- <button type="button" class="reset-btn" id="reset_btn">Reset</button> -->
+                        </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const HOST_IP = window.location.host;
+
+    const list_wifi = document.getElementById("list_wifi");
+
+    const ssid = document.getElementById("ssid");
+    const pass = document.getElementById("pass");
+
+    const clear_btn = document.getElementById("clear_btn");
+    const scan_btn = document.getElementById("scan_btn");
+    const save_btn = document.getElementById("save_btn");
+
+    const loading = () => {
+        fetch(`http://${HOST_IP}/wifi`, {
+            method: "GET",
+            // headers: {
+            //     "Content-Type": "application/json"
+            // }
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            let cols = Object.keys(data[0]);
+            let rows = data
+                .map(row => {
+                    let tds = cols.map(col => `<td>${row[col]}</td>`).join("");
+                    return `<tr ssid-data="${row['ssid']}" onclick="fillSSID(this)">${tds}</tr>`;
+                })
+                .join("");
+            list_wifi.innerHTML = rows;
+        });
+    }
+    const fillSSID = (wifi) => {
+        ssid.value = wifi.getAttribute("ssid-data")
+    }
+
+    scan_btn.onclick = () => loading();
+    clear_btn.onclick = () => {
+        list_wifi.innerHTML = null;
+    }
+    save_btn.onclick = () => {
+        const paramWiFi = new URLSearchParams()
+        paramWiFi.append("ssid", ssid.value);
+        paramWiFi.append("pass", pass.value);
+        fetch(`http://${HOST_IP}/wifisave?${paramWiFi.toString()}`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message)
+        });
+    }
+    loading();
+</script>
+
+</html>

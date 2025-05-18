@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Other</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="sidebar">
+            <div class="menu-section">
+                <h3 class="menu-header active">Overview</h3>
+                <ul>
+                    <li><a href="/">Overview</a></li>
+                    <li><a href="/slaves.html">Slaves</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">System</h3>
+                <ul>
+                    <li><a href="/systems.html">System</a></li>
+                    <li><a href="/modbus.html">Modbus</a></li>
+                    <li><a href="/mqtt.html">MQTT</a></li>
+                    <li><a href="/mapping.html">Mapping</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Network</h3>
+                <ul>
+                    <li><a href="/wifi.html">WiFi</a></li>
+                    <li><a href="/wan.html">WAN</a></li>
+                    <li><a href="/lan.html">LAN</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Other</h3>
+                <ul>
+                    <li><a href="/other.html" class="active">Other</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="backup" class="content-section active">
+                <h2>Other</h2>
+                <div class="backup-settings-content">
+                    <div class="backup-block">
+                        <h3>Backup</h3>
+                        <div class="backup-row">
+                            <a href="/api/backup" type="button" class="backup-btn green">Generate backup</a>
+                        </div>
+                    </div>
+                    <div class="backup-block">
+                        <h3>Restore</h3>
+                        <div class="backup-row">
+                            <input type="file" accept=".json" class="backup-btn green" id="restore_btn">
+                        </div>
+                    </div>
+                    <div class="backup-block">
+                        <h3>Restart</h3>
+                        <div class="backup-row">
+                            <button type="button" class="backup-btn blue" id="restart_btn">Restart</button>
+                        </div>
+                    </div>
+                    <div class="backup-block">
+                        <h3>Clear WiFi Credentials</h3>
+                        <div class="backup-row">
+                            <button type="button" class="backup-btn red" id="clear_btn">Clear</button>
+                        </div>
+                    </div>
+                    <div class="backup-block">
+                        <h3>Flash new firmware image</h3>
+                        <div class="backup-row">
+                            <input type="file" accept=".bin" class="backup-btn blue" id="flash_btn">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const HOST_IP = window.location.host;
+
+    const restore_btn = document.getElementById("restore_btn");
+    const restart_btn = document.getElementById("restart_btn");
+    const clear_btn = document.getElementById("clear_btn");
+    const flash_btn = document.getElementById("flash_btn");
+
+    restart_btn.onclick = () => {
+        fetch(`http://${HOST_IP}/restart`, {
+            method: "GET"
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message)
+        });
+    }
+
+    clear_btn.onclick = () => {
+        fetch(`http://${HOST_IP}/erase`, {
+            method: "GET"
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message)
+        });
+    }
+
+    restore_btn.onchange = async () => {
+        const data = new FormData();
+        data.append('data', restore_btn.files[0])
+        await fetch(`http://${HOST_IP}/api/restore`, {
+            method: "POST",
+            body: data
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message)
+        });
+    }
+
+    flash_btn.onchange = async () => {
+        const data = new FormData();
+        data.append('update', restore_btn.files[0])
+        await fetch(`http://${HOST_IP}/update`, {
+            method: "POST",
+            body: data
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message)
+        });
+    }
+</script>
+
+</html>

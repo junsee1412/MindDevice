@@ -1,0 +1,200 @@
+[
+    [
+        {
+            "func": 3,
+            "key": "V1N",
+            "offset": 0,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "V2N",
+            "offset": 2,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "V3N",
+            "offset": 4,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "Average Voltage LN",
+            "offset": 6,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "V12",
+            "offset": 8,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "V23",
+            "offset": 10,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "V31",
+            "offset": 12,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "Average Voltage LL",
+            "offset": 14,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "I1",
+            "offset": 16,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "I2",
+            "offset": 18,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "I3",
+            "offset": 20,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "Average Current",
+            "offset": 22,
+            "type": 6
+        }
+    ],
+    [
+        {
+            "func": 3,
+            "key": "PF1",
+            "offset": 48,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "PF2",
+            "offset": 50,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "PF3",
+            "offset": 52,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "Average PF",
+            "offset": 54,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "Frequency",
+            "offset": 56,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kWh",
+            "offset": 58,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kVAh",
+            "offset": 60,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kVArh",
+            "offset": 62,
+            "type": 6
+        }
+    ],
+    [
+        {
+            "func": 3,
+            "key": "kW1",
+            "offset": 24,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kW2",
+            "offset": 26,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kW3",
+            "offset": 28,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kVA1",
+            "offset": 30,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kVA2",
+            "offset": 32,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kVA3",
+            "offset": 34,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kVAr1",
+            "offset": 36,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kVAr2",
+            "offset": 38,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "kVAr3",
+            "offset": 40,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "Total kW",
+            "offset": 42,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "Total kVA",
+            "offset": 44,
+            "type": 6
+        },
+        {
+            "func": 3,
+            "key": "Total kVAr",
+            "offset": 46,
+            "type": 6
+        }
+    ]
+]

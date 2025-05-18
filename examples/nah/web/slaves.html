@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overview</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="sidebar">
+            <div class="menu-section">
+                <h3 class="menu-header active">Overview</h3>
+                <ul>
+                    <li><a href="/">Overview</a></li>
+                    <li><a href="/slaves.html" class="active">Slaves</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">System</h3>
+                <ul>
+                    <li><a href="/systems.html">System</a></li>
+                    <li><a href="/modbus.html">Modbus</a></li>
+                    <li><a href="/mqtt.html">MQTT</a></li>
+                    <li><a href="/mapping.html">Mapping</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Network</h3>
+                <ul>
+                    <li><a href="/wifi.html">WiFi</a></li>
+                    <li><a href="/wan.html">WAN</a></li>
+                    <li><a href="/lan.html">LAN</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Other</h3>
+                <ul>
+                    <li><a href="/other.html">Other</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="content-section active">
+                <h2>Slaves</h2>
+                <div class="map-ping-content">
+                    <div class="info-section">
+                        <h3 class="section-header">Check Slave Register</h3>
+                        <table class="info-table">
+                            <thead>
+                                <tr>
+                                    <th>Register address</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="slave_response">
+
+                            </tbody>
+                        </table>
+                        <div class="button-group">
+                            <div class="form-group">
+                                <label>ID</label>
+                                <input type="number" id="slave_id" min="0" max="255" value="0">
+                                <label>Function</label>
+                                <select id="slave_func">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                </select>
+                                <label>Num of Registers</label>
+                                <select id="slave_numregs">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                </select>
+                                <label>Offset</label>
+                                <input type="number" id="slave_offset" min="0" value="0">
+                                <label id="slave_event"></label>
+                            </div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="slave_send_btn">Send</button>
+                            <button type="button" class="reset-btn" id="slave_clear_btn">Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Node Section -->
+                    <div class="info-section">
+                        <h3 class="section-header">Slave Node</h3>
+                        <div class="node-navigation" id="node_devices">
+                            <button class="node-btn active">0x01</button>
+                            <button class="node-btn">0x02</button>
+                            <button class="node-btn">0x03</button>
+                            <button class="node-btn">0x04</button>
+                            <button class="node-btn">0x05</button>
+                        </div>
+                        <table class="modbus-node-table">
+                            <thead>
+                                <tr>
+                                    <th>Offset address</th>
+                                    <th>Function</th>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="node_response">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const HOST_IP = window.location.host;
+
+    const slave_response = document.getElementById("slave_response");
+    const slave_id = document.getElementById("slave_id");
+    const slave_func = document.getElementById("slave_func");
+    const slave_numregs = document.getElementById("slave_numregs");
+    const slave_offset = document.getElementById("slave_offset");
+
+    const slave_send_btn = document.getElementById("slave_send_btn");
+    const slave_clear_btn = document.getElementById("slave_clear_btn");
+
+    const node_btns = document.getElementsByClassName("node-btn");
+    const node_devices = document.getElementById("node_devices");
+    const node_response = document.getElementById("node_response");
+
+    var device_ids = [0];
+    var device_profiles = [];
+    const pad = (num, size) => {
+        num = num.toString();
+        while (num.length < size) num = "0" + num;
+        return num;
+    }
+    const parse_device_ids = (ids) => {
+        let opts = ids.map(id => `<option value="${id}">${id}</option>`);
+        return opts;
+    }
+    const load_profiles = () => {
+        fetch(`http://${HOST_IP}/api/mapping`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            device_profiles = data;
+        });
+    }
+    const load_devices = () => {
+        fetch(`http://${HOST_IP}/api/devices`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            device_ids = data.map(device => device.id);
+            const remove_dub = new Set(device_ids);
+            device_ids = Array.from(remove_dub);
+            let col_devices = data.map(device => `<button class="node-btn" slave-id="${device.id}" slave-profile="${device.profile}" onclick="get_data_by_profile(this)">0x${pad(device.id, 3)}</button>`).join("");
+            node_devices.innerHTML = col_devices;
+        });
+    }
+    const get_data_by_profile = (slave) => {
+        let id = slave.getAttribute("slave-id");
+        let profile = slave.getAttribute("slave-profile");
+        for (const btn of node_btns) {
+            btn.classList.remove("active");
+        }
+        slave.classList.add("active");
+
+        const param_node = new URLSearchParams();
+        param_node.append("id", slave_id.value);
+        param_node.append("profile", slave_func.value);
+        fetch(`http://${HOST_IP}/api/node?${param_node.toString()}`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            let cols = device_profiles[profile];
+            let rows = cols.map((value, index) => `<tr>
+                <td>0x${pad(Number(value.offset), 5)}</td>
+                <td>0x0${Number(value.func)}</td>
+                <td>${value.key}</td>
+                <td>${data[value.key]}</td>
+                </tr>`).join("");
+            node_response.innerHTML = rows;
+        });
+    }
+    slave_send_btn.onclick = () => {
+        const param_slave = new URLSearchParams()
+        param_slave.append("id", slave_id.value);
+        param_slave.append("func", slave_func.value);
+        param_slave.append("numregs", slave_numregs.value);
+        param_slave.append("offset", slave_offset.value);
+        fetch(`http://${HOST_IP}/api/key?${param_slave.toString()}`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            let rows = data.data.map((value, index) => `<tr>
+                <td>0x${pad(Number(index) + Number(slave_offset.value), 5)}</td>
+                <td>${Number(value)}</td>
+                </tr>`).join("");
+            slave_response.innerHTML = rows;
+        });
+    }
+    slave_clear_btn.onclick = () => {
+        slave_response.innerHTML = null;
+        slave_id.value = 0;
+        slave_func.value = 4;
+        slave_numregs.value = 1;
+        slave_offset.value = 0;
+    }
+    load_devices();
+    load_profiles();
+</script>
+</html>

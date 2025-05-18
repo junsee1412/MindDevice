@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="sidebar">
+            <div class="menu-section">
+                <h3 class="menu-header active">Overview</h3>
+                <ul>
+                    <li><a href="/">Overview</a></li>
+                    <li><a href="/slaves.html">Slaves</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">System</h3>
+                <ul>
+                    <li><a href="/systems.html">System</a></li>
+                    <li><a href="/modbus.html">Modbus</a></li>
+                    <li><a href="/mqtt.html" class="active">MQTT</a></li>
+                    <li><a href="/mapping.html">Mapping</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Network</h3>
+                <ul>
+                    <li><a href="/wifi.html">WiFi</a></li>
+                    <li><a href="/wan.html">WAN</a></li>
+                    <li><a href="/lan.html">LAN</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Other</h3>
+                <ul>
+                    <li><a href="/other.html">Other</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="main-content">
+            <!-- MQTT Section -->
+            <div id="MQTT" class="content-section active">
+                <h2>MQTT</h2>
+                <div class="comm-settings-content">
+                    <form class="comm-form">
+                        <div class="comm-socket-table">
+                            <div class="comm-row">
+                                <label>Host</label>
+                                <input type="text" id="comm_host">
+                            </div>
+                            <div class="comm-row">
+                                <label>Port</label>
+                                <input type="number" id="comm_port">
+                            </div>
+                            <div class="comm-row">
+                                <label>ID</label>
+                                <input type="text" id="comm_id">
+                            </div>
+                            <div class="comm-row">
+                                <label>Username</label>
+                                <input type="text" id="comm_user">
+                            </div>
+                            <div class="comm-row">
+                                <label>Password</label>
+                                <input type="text" id="comm_pass">
+                            </div>
+                            <div class="comm-row">
+                                <label>Attribute Frequency</label>
+                                <input type="number" id="comm_attrf">
+                            </div>
+                            <div class="comm-row">
+                                <label>Telemetry Frequency</label>
+                                <input type="number" id="comm_telef">
+                            </div>
+                            <div class="comm-row">
+                                <label>Reconnect Frequency</label>
+                                <input type="number" id="comm_reconnetf">
+                            </div>
+                        </div>
+                        <div class="button-group" style="justify-content: flex-end;">
+                            <button type="button" class="save-btn" id="save_btn">Save</button>
+                            <button type="button" class="reset-btn" id="reset_btn">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const HOST_IP = window.location.host;
+
+    const comm_host = document.getElementById("comm_host");
+    const comm_port = document.getElementById("comm_port");
+    const comm_id = document.getElementById("comm_id");
+    const comm_user = document.getElementById("comm_user");
+    const comm_pass = document.getElementById("comm_pass");
+    const comm_attrf = document.getElementById("comm_attrf");
+    const comm_telef = document.getElementById("comm_telef");
+    const comm_reconnetf = document.getElementById("comm_reconnetf");
+
+    const save_btn = document.getElementById("save_btn");
+    const reset_btn = document.getElementById("reset_btn");
+
+    const loading = () => {
+        fetch(`http://${HOST_IP}/api/mqtt`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            comm_host.value = data.host;
+            comm_port.value = data.port;
+            comm_id.value = data.id;
+            comm_user.value = data.user;
+            comm_pass.value = data.pass;
+            comm_attrf.value = data.attrf;
+            comm_telef.value = data.telef;
+            comm_reconnetf.value = data.reconnect;
+        });
+    }
+
+    reset_btn.onclick = () => loading();
+    save_btn.onclick = () => {
+        fetch(`http://${HOST_IP}/api/mqtt`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                host: comm_host.value,
+                port: comm_port.value,
+                id: comm_id.value,
+                user: comm_user.value,
+                pass: comm_pass.value,
+                attrf: comm_attrf.value,
+                telef: comm_telef.value,
+                reconnect: comm_reconnetf.value,
+            })
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message)
+        });
+    }
+    loading();
+</script>
+
+</html>

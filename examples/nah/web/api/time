@@ -1,0 +1,7 @@
+{
+    "ntp": true,
+    "host": "pool.ntp.org",
+    "post": 1337,
+    "tz": 7,
+    "rtc": null
+  }

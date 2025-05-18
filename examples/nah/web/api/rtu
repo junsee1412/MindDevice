@@ -1,0 +1,6 @@
+{
+  "baudrate": 9600,
+  "databit": 8,
+  "stopbit": 1,
+  "parity": 0
+}

@@ -1,0 +1,10 @@
+{
+  "id": "xejOfRHvHrckkuHJCYoV",
+  "user": "CTiYOF9X7Di90xJHzFRK",
+  "pass": "veUHqZHslwsTKFaKpCCb",
+  "host": "192.168.1.109",
+  "port": 1883,
+  "attrf": 30,
+  "telef": 300,
+  "reconnect": 5
+}

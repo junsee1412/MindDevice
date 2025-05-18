@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="sidebar">
+            <div class="menu-section">
+                <h3 class="menu-header active">Overview</h3>
+                <ul>
+                    <li><a href="/">Overview</a></li>
+                    <li><a href="/slaves.html">Slaves</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">System</h3>
+                <ul>
+                    <li><a href="/systems.html" class="active">System</a></li>
+                    <li><a href="/modbus.html">Modbus</a></li>
+                    <li><a href="/mqtt.html">MQTT</a></li>
+                    <li><a href="/mapping.html">Mapping</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Network</h3>
+                <ul>
+                    <li><a href="/wifi.html">WiFi</a></li>
+                    <li><a href="/wan.html">WAN</a></li>
+                    <li><a href="/lan.html">LAN</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Other</h3>
+                <ul>
+                    <li><a href="/other.html">Other</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="overview" class="content-section active" onshow="">
+                <h2>System</h2>
+                <div class="overview-content">
+                    <div class="info-section">
+                        <h3 class="section-header">System</h3>
+                        <form class="wan-form">
+                            <div class="wan-table">
+                                <div class="wan-row">
+                                    <label>Authentication</label>
+                                    <input type="checkbox" id="sys_auth">
+                                </div>
+                                <div class=" wan-row">
+                                    <label>Username</label>
+                                    <input type="text" id="sys_username">
+                                </div>
+                                <div class="wan-row">
+                                    <label>Password</label>
+                                    <input type="text" id="sys_password">
+                                </div>
+                                <div class="wan-row">
+                                    <label>Hostname</label>
+                                    <input type="text" id="sys_hostname">
+                                </div>
+                                <div class="wan-row">
+                                    <label>Port</label>
+                                    <input type="number" id="sys_port">
+                                </div>
+                                <div class="wan-row">
+                                    <label>AP SSID</label>
+                                    <input type="text" id="sys_apssid">
+                                </div>
+                                <div class="wan-row">
+                                    <label>AP Password</label>
+                                    <input type="text" id="sys_appassword">
+                                </div>
+                            </div>
+                            <div class="button-group" style="justify-content: flex-end;">
+                                <button type="button" class="save-btn" id="sys_save_btn">Save</button>
+                                <button type="button" class="reset-btn" id="sys_reset_btn">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="info-section">
+                        <h3 class="section-header">Time</h3>
+                        <form class="wan-form">
+                            <div class="wan-table">
+                                <div class="wan-row">
+                                    <label>NTP</label>
+                                    <input type="checkbox" id="ntp">
+                                </div>
+                                <div class="wan-row">
+                                    <label>Host</label>
+                                    <input type="text" id="ntp_host">
+                                </div>
+                                <div class="wan-row">
+                                    <label>Port</label>
+                                    <input type="number" id="ntp_port">
+                                </div>
+                                <div class="wan-row">
+                                    <label>Timezone</label>
+                                    <select id="ntp_tz" iotinput="int">
+                                        <option value="-12">(GMT -12:00) </option>
+                                        <option value="-11">(GMT -11:00)</option>
+                                        <option value="-10">(GMT -10:00) </option>
+                                        <option value="-9">(GMT -9:00) </option>
+                                        <option value="-8">(GMT -8:00) </option>
+                                        <option value="-7">(GMT -7:00) </option>
+                                        <option value="-6">(GMT -6:00) </option>
+                                        <option value="-5">(GMT -5:00) </option>
+                                        <option value="-4">(GMT -4:30) </option>
+                                        <option value="-4">(GMT -4:00) </option>
+                                        <option value="-3">(GMT -3:30) </option>
+                                        <option value="-3">(GMT -3:00) </option>
+                                        <option value="-2">(GMT -2:00) </option>
+                                        <option value="-1">(GMT -1:00) </option>
+                                        <option value="0">(GMT) </option>
+                                        <option value="1">(GMT +1:00) </option>
+                                        <option value="2">(GMT +2:00) </option>
+                                        <option value="3">(GMT +3:00) </option>
+                                        <option value="3">(GMT +3:30) </option>
+                                        <option value="4">(GMT +4:00) </option>
+                                        <option value="4">(GMT +4:30) </option>
+                                        <option value="5">(GMT +5:00) </option>
+                                        <option value="6">(GMT +6:00) </option>
+                                        <option value="7">(GMT +7:00) </option>
+                                        <option value="8">(GMT +8:00) </option>
+                                        <option value="9">(GMT +9:00) </option>
+                                        <option value="10">(GMT +10:00) </option>
+                                        <option value="11">(GMT +11:00) </option>
+                                        <option value="12">(GMT +12:00) </option>
+                                        <option value="13">(GMT +13:00) </option>
+                                        <option value="14">(GMT +14:00) </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="button-group" style="justify-content: flex-end;">
+                                <button type="button" class="save-btn" id="ntp_save_btn">Save</button>
+                                <button type="button" class="reset-btn" id="ntp_reset_btn">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const HOST_IP = window.location.host;
+
+    const sys_auth = document.getElementById("sys_auth");
+    const sys_username = document.getElementById("sys_username");
+    const sys_password = document.getElementById("sys_password");
+    const sys_hostname = document.getElementById("sys_hostname");
+    const sys_port = document.getElementById("sys_port");
+    const sys_apssid = document.getElementById("sys_apssid");
+    const sys_appassword = document.getElementById("sys_appassword");
+    const sys_save_btn = document.getElementById("sys_save_btn");
+    const sys_reset_btn = document.getElementById("sys_reset_btn");
+
+    const ntp = document.getElementById("ntp");
+    const ntp_host = document.getElementById("ntp_host");
+    const ntp_port = document.getElementById("ntp_port");
+    const ntp_tz = document.getElementById("ntp_tz");
+    const ntp_save_btn = document.getElementById("ntp_save_btn");
+    const ntp_reset_btn = document.getElementById("ntp_reset_btn");
+
+    const load_sys = () => {
+        fetch(`http://${HOST_IP}/api/system`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            sys_auth.checked = data.auth;
+            sys_username.value = data.user;
+            sys_password.value = data.pass;
+            sys_hostname.value = data.hostname;
+            sys_port.value = data.port;
+            sys_apssid.value = data.apssid;
+            sys_appassword.value = data.appass;
+        });
+    }
+    const load_time = () => {
+        fetch(`http://${HOST_IP}/api/time`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            ntp.checked = data.ntp;
+            ntp_host.value = data.host;
+            ntp_port.value = data.post;
+            ntp_tz.value = Number(data.tz);
+        });
+    }
+    sys_reset_btn.onclick = () => load_sys();
+    sys_save_btn.onclick = () => {
+        fetch(`http://${HOST_IP}/api/system`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                auth: Boolean(sys_auth.checked),
+                user: sys_username.value,
+                pass: sys_password.value,
+                hostname: sys_hostname.value,
+                port: sys_port.value,
+                apssid: sys_apssid.value,
+                appass: sys_appassword.value,
+            })
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message);
+        });
+    }
+    ntp_reset_btn.onclick = () => load_time();
+    ntp_save_btn.onclick = () => {
+        fetch(`http://${HOST_IP}/api/time`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                ntp: Boolean(ntp.checked),
+                host: ntp_host.value,
+                post: ntp_port.value,
+                tz: ntp_tz.value,
+            })
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message);
+        });
+    }
+    load_sys();
+    load_time();
+</script>
+</html>

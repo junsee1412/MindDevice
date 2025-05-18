@@ -1,9 +1,20 @@
 #include <ArduinoJson.h>
 #include <MindDevice.h>
-// #include "index.h"
-// #include "styles.h"
-// #include "script.h"
+#include "esp_mac.h"
 
+#include "styles.css.h"
+#include "index.html.h"
+#include "lan.html.h"
+#include "mapping.html.h"
+#include "modbus.html.h"
+#include "mqtt.html.h"
+#include "other.html.h"
+#include "slaves.html.h"
+#include "systems.html.h"
+#include "wan.html.h"
+#include "wifi.html.h"
+
+#define TRIGGER_PIN 0
 #ifdef ESP32
 #define LED_BUILTIN 13
 #endif
@@ -13,12 +24,26 @@ WiFiUDP _udp;
 NTPClient ntp(_udp);
 #endif
 
+#include <EasyButton.h>
+EasyButton button(TRIGGER_PIN);
+void buttonISR()
+{
+    button.read();
+}
+
 MindDevice md;
 
 void setup()
 {
     Serial.begin(9600);
     pinMode(LED_BUILTIN, OUTPUT);
+    button.begin();
+    button.onPressedFor(3000, reset_setting);
+    //   button.onSequence()
+    //   if (button.supportsInterrupt())
+    //   {
+    button.enableInterrupt(buttonISR);
+
     // md.setWebServerCallback(&webServer);
     md.wfmind.setWebServerCallback(&webServer);
     md.onPortalOTAStart(&otaStart);
@@ -46,6 +71,7 @@ void setup()
 
 void loop()
 {
+    button.update();
 #ifdef ESP8266
     md._now = ntp.getEpochTime();
 #endif
@@ -54,6 +80,17 @@ void loop()
 
 void webServer()
 {
+    md.wfmind.server->on("/", handleIndex);
+    md.wfmind.server->on("/lan.html", handleLAN);
+    md.wfmind.server->on("/mapping.html", handleMapping);
+    md.wfmind.server->on("/modbus.html", handleModbus);
+    md.wfmind.server->on("/mqtt.html", handleMQTT);
+    md.wfmind.server->on("/other.html", handleOther);
+    md.wfmind.server->on("/slaves.html", handleSlaves);
+    md.wfmind.server->on("/systems.html", handleSystem);
+    md.wfmind.server->on("/wan.html", handleWAN);
+    md.wfmind.server->on("/wifi.html", handleWiFi);
+    md.wfmind.server->on("/styles.css", handleStyles);
     md.wfmind.server->on("/api/info", HTTP_GET, handleGetInfo);
     md.wfmind.server->on("/api/key", HTTP_GET, handleGetByKey);
     md.wfmind.server->on("/api/node", HTTP_GET, handleGetByProfile);
@@ -77,12 +114,76 @@ void webServer()
     md.wfmind.server->on("/api/restore", HTTP_POST, handleRestored, handleRestore);
 }
 
+void handleIndex()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_index_html, web_out_index_html_len);
+}
+void handleLAN()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_lan_html, web_out_lan_html_len);
+}
+void handleMapping()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_mapping_html, web_out_mapping_html_len);
+}
+void handleModbus()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_modbus_html, web_out_modbus_html_len);
+}
+void handleMQTT()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_mqtt_html, web_out_mqtt_html_len);
+}
+void handleOther()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_other_html, web_out_other_html_len);
+}
+void handleSlaves()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_slaves_html, web_out_slaves_html_len);
+}
+void handleSystem()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_systems_html, web_out_systems_html_len);
+}
+void handleWAN()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_wan_html, web_out_wan_html_len);
+}
+void handleWiFi()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/html", web_out_wifi_html, web_out_wifi_html_len);
+}
+void handleStyles()
+{
+    md.wfmind.handleRequest();
+    md.wfmind.server->send_P(200, "text/css", web_out_styles_css, web_out_styles_css_len);
+}
+
 void handleGetInfo()
 {
+    md.wfmind.handleRequest();
     char buf[256];
     JsonDocument info;
     info["product"] = "ED485";
-    info["mac"] = WiFi.macAddress();
+    uint8_t base_mac[6];
+    esp_base_mac_addr_get(base_mac);
+    char base_mac_char[18] = {0};
+    sprintf(base_mac_char,
+        "%02X:%02X:%02X:%02X:%02X:%02X",
+        base_mac[0], base_mac[1], base_mac[2],
+        base_mac[3], base_mac[4], base_mac[5]);
+    info["mac"] = base_mac_char;
     info["ip"] = md.config["wan"]["ip"];
     info["dhcp"] = md.config["wan"]["dhcp"];
     info["mask"] = md.config["wan"]["mask"];
@@ -104,6 +205,7 @@ void handleGetInfo()
 
 void handleBackup()
 {
+    md.wfmind.handleRequest();
 #ifdef ESP8266
     if (!LittleFS.begin())
 #elif defined(ESP32)
@@ -130,6 +232,7 @@ void handleBackup()
 File fsUploadFile;
 void handleRestore()
 {
+    md.wfmind.handleRequest();
     HTTPUpload &upload = md.wfmind.server->upload();
     if (upload.status == UPLOAD_FILE_START)
     {
@@ -182,6 +285,7 @@ void handleRestored()
 
 void handleGetSystem()
 {
+    md.wfmind.handleRequest();
     char buf[256];
     // JsonDocument sys = md.config["sys"];
     // sys["stassid"] = "hha";
@@ -192,7 +296,7 @@ void handleGetSystem()
 
 void handleSaveSystem()
 {
-    // md.wfmind.handleRequest();
+    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
@@ -222,6 +326,7 @@ void handleSaveSystem()
 
 void handleGetWAN()
 {
+    md.wfmind.handleRequest();
     char buf[256];
     // JsonDocument wan = md.config["wan"];
     serializeJson(md.config["wan"], buf);
@@ -230,6 +335,7 @@ void handleGetWAN()
 
 void handleSaveWAN()
 {
+    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
@@ -257,6 +363,7 @@ void handleSaveWAN()
 
 void handleGetLAN()
 {
+    md.wfmind.handleRequest();
     char buf[256];
     JsonDocument lan = md.config["lan"];
     serializeJson(lan, buf);
@@ -265,6 +372,7 @@ void handleGetLAN()
 
 void handleSaveLAN()
 {
+    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
@@ -273,9 +381,9 @@ void handleSaveLAN()
         md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
         return;
     }
-    // md.config["lan"]["dhcp"] = doc["dhcp"] | false;
     md.config["lan"]["ip"] = doc["ip"] | "";
     md.config["lan"]["mask"] = doc["mask"] | "";
+    md.config["lan"]["gw"] = doc["gw"] | "";
     if (!md.saveConfig())
     {
         md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_SAVE_FAILED));
@@ -290,6 +398,7 @@ void handleSaveLAN()
 
 void handleGetTime()
 {
+    md.wfmind.handleRequest();
     char buf[256];
     JsonDocument time = md.config["time"];
     time["now"] = md._now;
@@ -299,6 +408,7 @@ void handleGetTime()
 
 void handleSaveTime()
 {
+    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
@@ -307,7 +417,7 @@ void handleSaveTime()
         md.wfmind.server->send(500, JSONTYPE, FPSTR(HTTP_MESSAGE_500));
         return;
     }
-    md.config["time"]["dhcp"] = doc["dhcp"] | false;
+    md.config["time"]["ntp"] = doc["ntp"] | false;
     md.config["time"]["host"] = doc["host"] | "pool.ntp.org";
     md.config["time"]["post"] = doc["post"] | 1337;
     md.config["time"]["tz"] = doc["tz"] | 7;
@@ -325,6 +435,7 @@ void handleSaveTime()
 
 void handleGetRTU()
 {
+    md.wfmind.handleRequest();
     char buf[256];
     JsonDocument time = md.config["rtu"];
     serializeJson(time, buf);
@@ -333,6 +444,7 @@ void handleGetRTU()
 
 void handleSaveRTU()
 {
+    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
@@ -359,6 +471,7 @@ void handleSaveRTU()
 
 void handleGetDevices()
 {
+    md.wfmind.handleRequest();
     // md.wfmind.server->
     char buf[1024];
     JsonDocument device = md.config["device"];
@@ -368,6 +481,7 @@ void handleGetDevices()
 
 void handleSaveDevices()
 {
+    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
@@ -390,14 +504,19 @@ void handleSaveDevices()
 
 void handleGetMapping()
 {
-    char buf[1024];
+    md.wfmind.handleRequest();
+    // char buf[4096];
+    char *buf = (char*)malloc( sizeof(char) * 4096);
     JsonDocument map = md.config["map"];
-    serializeJson(map, buf);
+    // serializeJson(map, buf);
+    serializeJson(map, buf, 4096);
     md.wfmind.server->send(200, JSONTYPE, buf);
+    free(buf);
 }
 
 void handleSaveMapping()
 {
+    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
@@ -420,6 +539,7 @@ void handleSaveMapping()
 
 void handleGetMqtt()
 {
+    md.wfmind.handleRequest();
     char buf[512];
     JsonObject network = md.config["mqtt"];
     serializeJson(network, buf);
@@ -428,6 +548,7 @@ void handleGetMqtt()
 
 void handleSaveMqtt()
 {
+    md.wfmind.handleRequest();
     String buf = md.wfmind.server->arg("plain");
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, buf);
@@ -458,6 +579,7 @@ void handleSaveMqtt()
 
 void handleGetByProfile()
 {
+    md.wfmind.handleRequest();
     int id = (int)md.wfmind.server->arg("id").toInt() | 0;
     uint8_t profile = (uint8_t)md.wfmind.server->arg("profile").toInt() | 0;
     JsonArray keys = md.config["map"][profile].as<JsonArray>();
@@ -529,6 +651,7 @@ void handleGetByProfile()
 
 void handleGetByKey()
 {
+    md.wfmind.handleRequest();
     int id = (int)md.wfmind.server->arg("id").toInt() | 0;
     int func = (int)md.wfmind.server->arg("func").toInt() | 0;
     uint16_t numregs = (uint16_t)md.wfmind.server->arg("numregs").toInt() | 0;
@@ -654,4 +777,11 @@ bool cbWrite(Modbus::ResultCode event, uint16_t transactionId, void *data)
         Serial.println(event, HEX);
     }
     return true;
+}
+
+void reset_setting()
+{
+    md.wfmind.resetSettings();
+    delay(500);
+    ESP.restart();
 }

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="sidebar">
+            <div class="menu-section">
+                <h3 class="menu-header active">Overview</h3>
+                <ul>
+                    <li><a href="/">Overview</a></li>
+                    <li><a href="/slaves.html" class="active">Slaves</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">System</h3>
+                <ul>
+                    <li><a href="/systems.html">System</a></li>
+                    <li><a href="/modbus.html">Modbus</a></li>
+                    <li><a href="/mqtt.html">MQTT</a></li>
+                    <li><a href="/mapping.html" class="active">Mapping</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Network</h3>
+                <ul>
+                    <li><a href="/wifi.html">WiFi</a></li>
+                    <li><a href="/wan.html">WAN</a></li>
+                    <li><a href="/lan.html">LAN</a></li>
+                </ul>
+            </div>
+            <div class="menu-section">
+                <h3 class="menu-header">Other</h3>
+                <ul>
+                    <li><a href="/other.html">Other</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="content-section active">
+                <h2>Mapping</h2>
+                <div class="modbus-poll-settings-content">
+                    <div class="modbus-gateway-section">
+                        <h3 class="section-header">Mapping</h3>
+                        <div id="mapping_node" class="modbus-node-nav" style="max-width: 800px; overflow-x: scroll;">
+                        </div>
+                        <div class="modbus-node-add-btn-group button-group">
+                            <button type="button" class="add-btn" id="mapping-add-btn">Add</button>
+                            <button type="button" class="remove-btn" id="mapping-remove-btn">Remove</button>
+                        </div>
+                        <!-- <div id="modbus-node-table-wrapper"> -->
+                        <table class="modbus-node-table">
+                            <thead>
+                                <tr>
+                                    <th>Funtion</th>
+                                    <th>Offset address</th>
+                                    <th>Key</th>
+                                    <th>Type</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="detail_mapping">
+                            </tbody>
+                        </table>
+                        <!-- </div> -->
+                        <form class="modbus-node-form" id="modbus-node-form">
+                            <div class="modbus-node-form-table">
+                                <div class="modbus-node-form-row">
+                                    <label>Function</label>
+                                    <select id="mapping_func" iotinput="int">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                    </select>
+                                </div>
+                                <div class="modbus-node-form-row">
+                                    <label>Offset address</label>
+                                    <input type="number" id="mapping_offset" min="0" value="0">
+                                </div>
+                                <div class="modbus-node-form-row">
+                                    <label>Key</label>
+                                    <input type="text" id="mapping_key">
+                                </div>
+                                <div class="modbus-node-form-row">
+                                    <label>Type</label>
+                                    <select id="mapping_type" iotinput="int">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="button-group" style="justify-content: flex-end;">
+                                <button type="button" class="add-btn" id="cell-add-btn">Add</button>
+                                <button type="button" class="save-btn" id="cell-save-btn">Save</button>
+                                <button type="button" class="reset-btn" id="cell-reset-btn">Reset</button>
+                            </div>
+                        </form>
+                        <div class="button-group" style="justify-content: flex-end; margin-top: 20px;">
+                            <button type="button" class="save-btn" id="mapping-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="mapping-reset-btn">Reset</button>
+                        </div>
+                    </div>
+                    <div class="modbus-node-section">
+                        <h3 class="section-header">Slaves</h3>
+                        <table class="modbus-gateway-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Mapping</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="list-slave">
+                            </tbody>
+                        </table>
+
+                        <form class="modbus-node-form" id="modbus-node-form">
+                            <div class="modbus-node-form-table">
+                                <div class="modbus-node-form-row">
+                                    <label>ID</label>
+                                    <input type="number" id="slave_id" min="0" max="255" value="0">
+                                </div>
+                                <div class="modbus-node-form-row">
+                                    <label>Name</label>
+                                    <input type="text" id="slave_name">
+                                </div>
+                                <div class="modbus-node-form-row">
+                                    <label>Mapping</label>
+                                    <select id="slave_mapping" iotinput="int"></select>
+                                </div>
+                            </div>
+                            <div class="button-group" style="justify-content: flex-end;">
+                                <button type="button" class="add-btn" id="cell-slave-add-btn">Add</button>
+                                <button type="button" class="save-btn" id="cell-slave-save-btn">Save</button>
+                                <button type="button" class="reset-btn" id="cell-slave-reset-btn">Reset</button>
+                            </div>
+                        </form>
+                        <div class="button-group" style="justify-content: flex-end; margin-top: 20px;">
+                            <button type="button" class="save-btn" id="slave-save-btn">Save</button>
+                            <button type="button" class="reset-btn" id="slave-reset-btn">Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    const HOST_IP = window.location.host;
+    const MAP_TYPE_DATA = {
+        "bool": 0,
+        "int8": 1,
+        "uint8": 2,
+        "int16": 3,
+        "uint16": 4,
+        "int32": 5,
+        "uint32": 6,
+        "int32_reverse": 7,
+        "uint32_reverse": 8,
+        "int64": 9,
+        "uint64": 10,
+        "int64_reverse": 11,
+        "uint64_reverse": 12,
+    }
+    const MAP_TYPE_DATA_KEY = Object.keys(MAP_TYPE_DATA);
+
+    const mapping_node = document.getElementById("mapping_node");
+    const detail_mapping = document.getElementById("detail_mapping");
+
+    const node_btns = document.getElementsByClassName("node-btn");
+    const mapping_add_btn = document.getElementById("mapping-add-btn");
+    const mapping_remove_btn = document.getElementById("mapping-remove-btn");
+    const mapping_reset_btn = document.getElementById("mapping-reset-btn");
+    const mapping_save_btn = document.getElementById("mapping-save-btn");
+
+    const mapping_func = document.getElementById("mapping_func");
+    const mapping_offset = document.getElementById("mapping_offset");
+    const mapping_key = document.getElementById("mapping_key");
+    const mapping_type = document.getElementById("mapping_type");
+
+    const cell_add_btn = document.getElementById("cell-add-btn");
+    const cell_save_btn = document.getElementById("cell-save-btn");
+    const cell_reset_btn = document.getElementById("cell-reset-btn");
+
+    const slave_list = document.getElementById("list-slave");
+    const slave_id = document.getElementById("slave_id");
+    const slave_name = document.getElementById("slave_name");
+    const slave_mapping = document.getElementById("slave_mapping");
+
+    const cell_slave_add_btn = document.getElementById("cell-slave-add-btn");
+    const cell_slave_save_btn = document.getElementById("cell-slave-save-btn");
+    const cell_slave_reset_btn = document.getElementById("cell-slave-reset-btn");
+    const slave_save_btn = document.getElementById("slave-save-btn");
+    const slave_reset_btn = document.getElementById("slave-reset-btn");
+
+    var mapping_data = [];
+    var slave_data = [];
+    var cell_index = 0;
+    var slave_index = null;
+
+    const pad = (num, size) => {
+        num = num.toString();
+        while (num.length < size) num = "0" + num;
+        return num;
+    }
+    const getKeyByValue = (object, value) => {
+        return Object.keys(object).find(key => object[key] === value);
+    }
+    const loading = () => {
+        let rows = MAP_TYPE_DATA_KEY.map(key => `<option value="${MAP_TYPE_DATA[key]}">${key}</option>`);
+        mapping_type.innerHTML = rows;
+    }
+    const load_mapping = () => {
+        fetch(`http://${HOST_IP}/api/mapping`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            render_mapping_index(data);
+            mapping_data = data;
+            render_mapping();
+            reset_cell();
+        });
+    }
+    const render_mapping = () => {
+        let cols = mapping_data.map((value, index) => `<button class="node-btn" onclick="get_detail_profile(this)" index="${index}">0x${pad(index, 2)}</button>`).join("");
+        mapping_node.innerHTML = cols;
+        detail_mapping.innerHTML = null;
+    }
+    const render_detail_mapping = (index) => {
+        const detail_profile = mapping_data[index];
+        let rows = detail_profile.map((row, index) => `<tr onclick="fillKeyCell(this)" func="${row.func}" offset="${row.offset}" key="${row.key}" type="${row.type}" index="${index}"><td>0x${pad(Number(row.func), 2)}</td><td>0x${pad(Number(row.offset), 5)}</td><td>${row.key}</td><td>${getKeyByValue(MAP_TYPE_DATA, Number(row.type))}</td><td><button class="remove-btn" onclick="remove_cell(this)" index="${index}">Delete</button></td></tr>`).join("");
+        detail_mapping.innerHTML = rows;
+        reset_cell();
+    }
+    const get_detail_profile = (profile) => {
+        let index = profile.getAttribute("index");
+        for (const btn of node_btns) {
+            btn.classList.remove("active");
+        }
+        profile.classList.add("active");
+        render_detail_mapping(index);
+    }
+    const fillKeyCell = (cell) => {
+        cell_index = cell.getAttribute("index");
+        mapping_func.value = cell.getAttribute("func");
+        mapping_offset.value = cell.getAttribute("offset");
+        mapping_key.value = cell.getAttribute("key");
+        mapping_type.value = cell.getAttribute("type");
+    }
+    const reset_cell = () => {
+        cell_index = null;
+        mapping_func.value = 1;
+        mapping_offset.value = 0;
+        mapping_key.value = "";
+        mapping_type.value = 0;
+    }
+    const remove_cell = (cell) => {
+        let index = cell.getAttribute("index");
+
+        for (const btn of node_btns) {
+            if (btn.classList.contains("active")) {
+                let map_index = btn.getAttribute("index");
+                mapping_data[map_index].splice(index, 1);
+                render_detail_mapping(map_index);
+            }
+        }
+    }
+    mapping_reset_btn.onclick = () => load_mapping();
+    mapping_remove_btn.onclick = () => {
+        for (const btn of node_btns) {
+            if (btn.classList.contains("active")) {
+                let index = btn.getAttribute("index");
+                mapping_data.splice(index, 1);
+                render_detail_mapping(index);
+            }
+        }
+    }
+    mapping_add_btn.onclick = () => {
+        mapping_data.push([]);
+        render_mapping();
+    }
+    mapping_save_btn.onclick = () => {
+        fetch(`http://${HOST_IP}/api/mapping`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(mapping_data)
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            alert(data.message)
+        });
+        loading();
+        load_mapping();
+    }
+    cell_add_btn.onclick = () => {
+        for (const btn of node_btns) {
+            if (btn.classList.contains("active")) {
+                let index = btn.getAttribute("index");
+                if (!mapping_key.value)
+                    alert("Key is Null");
+                else {
+                    mapping_data[index].push({
+                        func: mapping_func.value,
+                        offset: mapping_offset.value,
+                        key: mapping_key.value,
+                        type: mapping_type.value,
+                    });
+                    reset_cell();
+                    render_detail_mapping(index);
+                }
+            }
+        }
+    };
+    cell_save_btn.onclick = () => {
+        for (const btn of node_btns) {
+            if (btn.classList.contains("active")) {
+                let map_index = btn.getAttribute("index");
+                if (!mapping_key.value)
+                    alert("Key is Null");
+                else {
+                    mapping_data[map_index][cell_index] = {
+                        func: mapping_func.value,
+                        offset: mapping_offset.value,
+                        key: mapping_key.value,
+                        type: mapping_type.value,
+                    };
+                }
+                render_detail_mapping(map_index);
+            }
+        }
+    }
+    cell_reset_btn.onclick = () => reset_cell();
+
+    const render_mapping_index = (mapping) => {
+        let opts = mapping.map((v, index) => `<option value="${index}">0x${pad(index, 2)}</option>`);
+        slave_mapping.innerHTML = opts;
+    }
+    const remove_slave = (slave) => {
+        let index = slave.getAttribute("index");
+        slave_data.splice(index, 1);
+        render_slaves();
+    }
+    const fill_slave = (slave) => {
+        slave_index = slave.getAttribute("index");
+        slave_id.value = slave.getAttribute("slave-id");
+        slave_name.value = slave.getAttribute("slave-name");
+        slave_mapping.value = slave.getAttribute("slave-mapping");
+    }
+    const reset_slave = () => {
+        slave_index = null;
+        slave_id.value = 0;
+        slave_name.value = "";
+        slave_mapping.value = 0;
+    }
+    const render_slaves = () => {
+        let rows = slave_data.map((row, index) => `<tr onclick="fill_slave(this)" slave-id="${row.id}" slave-name="${row.name}" slave-mapping="${row.profile}" index="${index}"><td>0x${pad(Number(row.id), 4)}</td><td>${row.name}</td><td>0x${pad(row.profile, 2)}</td><td><button class="remove-btn" onclick="remove_slave(this)" index="${index}">Delete</button></td></tr>`).join("");
+        slave_list.innerHTML = rows;
+    }
+    const load_slaves = () => {
+        fetch(`http://${HOST_IP}/api/devices`, {
+            method: "GET",
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            slave_data = data;
+            render_slaves();
+            reset_slave();
+        });
+    }
+    slave_reset_btn.onclick = () => load_slaves();
+    cell_slave_save_btn.onclick = () => {
+        fetch(`http://${HOST_IP}/api/devices`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(slave_data)
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            slave_data = data;
+            load_slaves();
+        });
+    }
+    cell_slave_add_btn.onclick = () => {
+        if (!slave_name.value)
+            alert("Name is Null");
+        else {
+            slave_data.push({
+                id: slave_id.value,
+                name: slave_name.value,
+                profile: slave_mapping.value,
+            })
+            render_slaves();
+            reset_slave();
+        }
+    }
+    cell_slave_reset_btn.onclick = () => reset_slave();
+    load_slaves();
+    load_mapping();
+    loading();
+</script>
+</html>
