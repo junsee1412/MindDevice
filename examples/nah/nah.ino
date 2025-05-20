@@ -33,6 +33,17 @@ void buttonISR()
 
 MindDevice md;
 
+#ifdef RTOS_DEV
+void taskMQTT(void *pvParameters)
+{
+    (void)pvParameters;
+    while (1)
+    {
+        md.processMQTT();
+    }
+}
+#endif
+
 void setup()
 {
     Serial.begin(9600);
@@ -67,6 +78,10 @@ void setup()
     //     onReloadNTP("pool.ntp.org", NTP_DEFAULT_LOCAL_PORT, 7);
     // #endif
     Serial.println(WiFi.localIP());
+
+#ifdef RTOS_DEV
+    xTaskCreate(taskMQTT, "MQTT Task", 3072, NULL, 0, NULL);
+#endif
 }
 
 void loop()
@@ -180,9 +195,9 @@ void handleGetInfo()
     esp_base_mac_addr_get(base_mac);
     char base_mac_char[18] = {0};
     sprintf(base_mac_char,
-        "%02X:%02X:%02X:%02X:%02X:%02X",
-        base_mac[0], base_mac[1], base_mac[2],
-        base_mac[3], base_mac[4], base_mac[5]);
+            "%02X:%02X:%02X:%02X:%02X:%02X",
+            base_mac[0], base_mac[1], base_mac[2],
+            base_mac[3], base_mac[4], base_mac[5]);
     info["mac"] = base_mac_char;
     info["ip"] = md.config["wan"]["ip"];
     info["dhcp"] = md.config["wan"]["dhcp"];
@@ -506,7 +521,7 @@ void handleGetMapping()
 {
     md.wfmind.handleRequest();
     // char buf[4096];
-    char *buf = (char*)malloc( sizeof(char) * 4096);
+    char *buf = (char *)malloc(sizeof(char) * 4096);
     JsonDocument map = md.config["map"];
     // serializeJson(map, buf);
     serializeJson(map, buf, 4096);

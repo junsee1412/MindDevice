@@ -53,8 +53,31 @@ void MindDevice::process()
     getLocalTime(&timeinfo, 0);
     time(&_now);
 #endif
-
     wfmind.process();
+    if (mqttclient.connected())
+    {
+        mqttclient.loop();
+        if (_now - _lastDevAttribute >= 5)
+        {
+            _lastDevAttribute = _now;
+            char *msg = (char *)malloc(sizeof(char) * 128);
+            sprintf(msg,
+                "{\"RSSI\":%d,\"SSID\":\"%s\",\"IP\":\"%s\",\"MAC\":\"%s\"}",
+                wfmind.getRSSIasQuality(WiFi.RSSI()),
+                WiFi.SSID().c_str(),
+                WiFi.localIP().toString().c_str(),
+                WiFi.macAddress().c_str());
+            mqttclient.publish(DEVICE_ATTRIBUTES_TOPIC, msg, 128);
+            free(msg);
+        }
+    }
+#ifndef RTOS_DEV
+    processMQTT();
+#endif
+}
+
+void MindDevice::processMQTT()
+{
     if (!mqttclient.connected())
     {
         reconnect();
@@ -66,15 +89,6 @@ void MindDevice::process()
         if (_now - _lastAttribute >= _attributeFrequency)
         {
             _lastAttribute = _now;
-            char msg[128] = {0};
-            sprintf(
-                msg,
-                "{\"RSSI\":%d,\"SSID\":\"%s\",\"IP\":\"%s\",\"MAC\":\"%s\"}",
-                wfmind.getRSSIasQuality(WiFi.RSSI()),
-                WiFi.SSID().c_str(),
-                WiFi.localIP().toString().c_str(),
-                WiFi.macAddress().c_str());
-            mqttclient.publish(DEVICE_ATTRIBUTES_TOPIC, msg, 32);
             sendAttribute();
         }
         if (_now - _lastTelemetry >= _telemetryFrequency)
@@ -161,9 +175,11 @@ void MindDevice::sendAttribute()
             if (non_error)
             {
                 doc_for_attr[device["name"] | ""] = resDevice;
-                serializeJson(doc_for_attr, bufmqtt);
+                char *bufmqtt = (char *)malloc(sizeof(char) * 512);
+                serializeJson(doc_for_attr, bufmqtt, 512);
                 Serial.println(bufmqtt);
-                mqttclient.publish(GATEWAY_ATTRIBUTES_TOPIC, bufmqtt, 256);
+                mqttclient.publish(GATEWAY_ATTRIBUTES_TOPIC, bufmqtt, 512);
+                free(bufmqtt);
             }
         }
     }
@@ -246,9 +262,11 @@ void MindDevice::sendTelemetry()
             {
                 JsonArray array = doc_for_tele[device["name"] | ""].to<JsonArray>();
                 array.add(res_values);
-                serializeJson(doc_for_tele, bufmqtt);
+                char *bufmqtt = (char *)malloc(sizeof(char) * 512);
+                serializeJson(doc_for_tele, bufmqtt, 512);
                 Serial.println(bufmqtt);
-                mqttclient.publish(GATEWAY_TELEMETRY_TOPIC, bufmqtt, 256);
+                mqttclient.publish(GATEWAY_TELEMETRY_TOPIC, bufmqtt, 512);
+                free(bufmqtt);
             }
         }
     }
@@ -391,7 +409,9 @@ void MindDevice::reloadTime()
 {
 #ifdef ESP32
     long time_offset = config["time"]["tz"] | 7;
-    configTime(time_offset * 3600, 0, config["time"]["host"] | "pool.ntp.org");
+    bool is_ntp = config["time"]["ntp"] | false;
+    if (is_ntp)
+        configTime(time_offset * 3600, 0, config["time"]["host"] | "pool.ntp.org");
 #else defined(ESP8266)
     if (_callbackTime)
     {
@@ -401,12 +421,13 @@ void MindDevice::reloadTime()
             config["time"]["tz"] | 7);
     }
 #endif
-Serial.println("TIME");
+    Serial.println("TIME");
 }
 
 void MindDevice::reloadSYS()
 {
     wfmind.setAllowBasicAuth(config["sys"]["auth"] | false);
+    wfmind.setBasicAuth(config["sys"]["user"] | "admin", config["sys"]["pass"] | "admin");
     wfmind.setHostname(config["sys"]["hostname"] | "MIND_Dev");
     wfmind.setHttpPort(config["sys"]["port"] | 80);
     // wfmind.setAP

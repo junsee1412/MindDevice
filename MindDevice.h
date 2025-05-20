@@ -20,6 +20,9 @@
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <time.h>
+
+#define RTOS_DEV
+
 #endif
 
 class MindDevice
@@ -44,6 +47,7 @@ public:
     void reloadSYS();
     void reloadRTU();
     void reloadTime();
+    void processMQTT();
     void sendAttribute();
     void sendTelemetry();
 
@@ -59,13 +63,15 @@ private:
     unsigned long _lastAttribute = 0;
     unsigned long _lastReconnect = 0;
 
+    unsigned long _lastDevAttribute = 0;
+
     unsigned char _attributeFrequency = 0;
     unsigned char _telemetryFrequency = 0;
     unsigned char _timeReconnect = 5;
 
     uint16_t _valregs[4];
     bool _boolregs;
-    char bufmqtt[256];
+    // char bufmqtt[512];
     // JsonDocument doc_for_attr;
 
 #if defined(ESP32)
@@ -73,7 +79,7 @@ private:
 #else
     using OTAUpdate = ESP8266HTTPUpdate;
     SoftwareSerial S;
-    std::function<void(const char*, unsigned int, int)> _callbackTime;
+    std::function<void(const char *, unsigned int, int)> _callbackTime;
 #endif
     OTAUpdate otaUpdate;
 
@@ -100,9 +106,9 @@ public:
     void onMQTTConnected(std::function<void(bool)> func) { _onMQTTconnected = func; }
 
     void setRTUCallback(cbTransaction func) { _rtuCallback = func; }
-    
+
 #ifdef ESP8266
-    void setReloadNTPCallback(std::function<void(const char*, unsigned int, int)> func) { _callbackTime = func; }
+    void setReloadNTPCallback(std::function<void(const char *, unsigned int, int)> func) { _callbackTime = func; }
 #endif
 };
 
