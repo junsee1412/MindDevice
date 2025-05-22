@@ -604,6 +604,9 @@ void handleGetByProfile()
     uint16_t _valregs[4] = {0};
     char buf[256];
 
+    v32 val_32;
+    v64 val_64;
+
     for (JsonObject key : keys)
     {
         int func = key["func"] | 0;
@@ -648,15 +651,31 @@ void handleGetByProfile()
         case 4:
         case 5:
         case 6:
-        case 9:
-        case 10:
+        case 11:
+        case 12:
             res_values[key["key"] | "num"] = md.merge_variables(_valregs, numregs);
+            break;
+        case 9:
+            val_32.u = md.merge_variables(_valregs, numregs);
+            res_values[key["key"] | "num"] = val_32.f;
+            break;
+        case 15:
+            val_64.u = md.merge_variables(_valregs, numregs);
+            res_values[key["key"] | "num"] = val_64.f;
             break;
         case 7:
         case 8:
-        case 11:
-        case 12:
+        case 13:
+        case 14:
             res_values[key["key"] | "num"] = md.merge_variables(_valregs, numregs, true);
+            break;
+        case 10:
+            val_32.u = md.merge_variables(_valregs, numregs, true);
+            res_values[key["key"] | "num"] = val_32.f;
+            break;
+        case 16:
+            val_64.u = md.merge_variables(_valregs, numregs, true);
+            res_values[key["key"] | "num"] = val_64.f;
             break;
         }
     }

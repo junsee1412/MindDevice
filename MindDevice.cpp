@@ -159,15 +159,31 @@ void MindDevice::sendAttribute()
                 case 4:
                 case 5:
                 case 6:
-                case 9:
-                case 10:
+                case 11:
+                case 12:
                     resDevice[key["key"] | "num"] = merge_variables(_valregs, numregs);
+                    break;
+                case 9:
+                    _v32.u = merge_variables(_valregs, numregs);
+                    resDevice[key["key"] | "num"] = _v32.f;
+                    break;
+                case 15:
+                    _v64.u = merge_variables(_valregs, numregs);
+                    resDevice[key["key"] | "num"] = _v64.f;
                     break;
                 case 7:
                 case 8:
-                case 11:
-                case 12:
+                case 13:
+                case 14:
                     resDevice[key["key"] | "num"] = merge_variables(_valregs, numregs, true);
+                    break;
+                case 10:
+                    _v32.u = merge_variables(_valregs, numregs, true);
+                    resDevice[key["key"] | "num"] = _v32.f;
+                    break;
+                case 16:
+                    _v64.u = merge_variables(_valregs, numregs, true);
+                    resDevice[key["key"] | "num"] = _v64.f;
                     break;
                 }
             }
@@ -245,15 +261,31 @@ void MindDevice::sendTelemetry()
                 case 4:
                 case 5:
                 case 6:
-                case 9:
-                case 10:
+                case 11:
+                case 12:
                     res_values[key["key"] | "num"] = merge_variables(_valregs, numregs);
+                    break;
+                case 9:
+                    _v32.u = merge_variables(_valregs, numregs);
+                    res_values[key["key"] | "num"] = _v32.f;
+                    break;
+                case 15:
+                    _v64.u = merge_variables(_valregs, numregs);
+                    res_values[key["key"] | "num"] = _v64.f;
                     break;
                 case 7:
                 case 8:
-                case 11:
-                case 12:
+                case 13:
+                case 14:
                     res_values[key["key"] | "num"] = merge_variables(_valregs, numregs, true);
+                    break;
+                case 10:
+                    _v32.u = merge_variables(_valregs, numregs, true);
+                    res_values[key["key"] | "num"] = _v32.f;
+                    break;
+                case 16:
+                    _v64.u = merge_variables(_valregs, numregs, true);
+                    res_values[key["key"] | "num"] = _v64.f;
                     break;
                 }
             }
@@ -278,7 +310,7 @@ uint16_t MindDevice::type_to_numregs(uint8_t type)
     {
         return 1;
     }
-    else if (type <= 8)
+    else if (type <= 10)
     {
         return 2;
     }

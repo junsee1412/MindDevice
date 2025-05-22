@@ -25,6 +25,20 @@
 
 #endif
 
+union v32
+{
+    float f;
+    uint32_t u;
+    int32_t i;
+};
+
+union v64
+{
+    double f;
+    uint64_t u;
+    int64_t i;
+};
+
 class MindDevice
 {
 public:
@@ -71,6 +85,8 @@ private:
 
     uint16_t _valregs[4];
     bool _boolregs;
+    v32 _v32;
+    v64 _v64;
     // char bufmqtt[512];
     // JsonDocument doc_for_attr;
 
