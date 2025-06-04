@@ -213,7 +213,7 @@ void handleGetInfo()
     info["uptime"] = esp_timer_get_time();
 #endif
     info["freememory"] = ESP.getFreeHeap();
-    info["rssi"] = md.wfmind.getRSSIasQuality(WiFi.RSSI());
+    info["rssi"] = WiFi.RSSI();
     serializeJson(info, buf);
     md.wfmind.server->send(200, JSONTYPE, buf);
 }
