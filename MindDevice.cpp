@@ -63,7 +63,7 @@ void MindDevice::process()
             char *msg = (char *)malloc(sizeof(char) * 128);
             sprintf(msg,
                 "{\"RSSI\":%d,\"SSID\":\"%s\",\"IP\":\"%s\",\"MAC\":\"%s\"}",
-                wfmind.getRSSIasQuality(WiFi.RSSI()),
+                WiFi.RSSI(),
                 WiFi.SSID().c_str(),
                 WiFi.localIP().toString().c_str(),
                 WiFi.macAddress().c_str());

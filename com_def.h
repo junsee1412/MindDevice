@@ -2,7 +2,7 @@
 #define DEVICE_TELEMETRY_TOPIC "v1/devices/me/telemetry"
 #define DEVICE_ATTRIBUTES_TOPIC "v1/devices/me/attributes"
 #define DEVICE_ATTRIBUTES_TOPIC_REQUEST "v1/devices/me/attributes/request/"
-#define DEVICE_ATTRIBUTES_TOPIC_RESPONSE "v1/devices/me/attributes/response/"
+#define DEVICE_ATTRIBUTES_TOPIC_RESPONSE "v1/devices/me/attributes/response/+"
 #define DEVICE_RPC_TOPIC_REQUEST "v1/devices/me/rpc/request/"
 #define DEVICE_RPC_TOPIC_RESPONSE "v1/devices/me/rpc/response/"
 
