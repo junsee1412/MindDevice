@@ -26,7 +26,7 @@
                 "/home/junsee/.arduino15/packages/esp32/hardware/esp32/3.2.0/libraries/FS/src",
                 "/home/junsee/.arduino15/packages/esp32/hardware/esp32/3.2.0/libraries/DNSServer/src",
                 "/home/junsee/.arduino15/packages/esp32/hardware/esp32/3.2.0/libraries/AsyncUDP/src",
-                "/home/junsee/Arduino/libraries/PubSubClient/src",
+                "/home/junsee/Arduino/libraries/PubSubClient3/src",
                 "/home/junsee/Arduino/libraries/modbus-esp8266/src",
                 "/home/junsee/.arduino15/packages/esp32/hardware/esp32/3.2.0/libraries/LittleFS/src",
                 "/home/junsee/Arduino/libraries/RTClib/src",
